@@ -204,5 +204,5 @@ fabric.properties
 
 IEMOCAP
 
-dataset/*
 .idea
+/dataset/*
