@@ -1,0 +1,4 @@
+max duration	34.13875
+min duration	0.5849375
+mean duration	4.548984880672573
+variance duration	10.435699404795361
