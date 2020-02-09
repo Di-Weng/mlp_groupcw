@@ -5,24 +5,33 @@ from data_providers import IEMOCAP
 from arg_extractor import get_args
 from experiment_builder import ExperimentBuilder
 from model_architectures import *
+from torch.nn.utils.rnn import pack_sequence
+from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
+
+def pad_collate(batch):
+  (xx, yy) = zip(*batch)
+  x_lens = [x.shape for x in xx]
+
+  xx_pad = pad_sequence(xx, batch_first=True, padding_value=0)
+
+  x_packed = pack_padded_sequence(xx_pad, x_lens, batch_first=True, enforce_sorted=False)
+  y_list = [y for y in yy]
+
+  return [x_packed, y_list]
 
 if __name__ == '__main__':
     args = get_args()  # get arguments from command line
     rng = np.random.RandomState(seed=args.seed)  # set the seeds for the experiment
     torch.manual_seed(seed=args.seed)  # sets pytorch's seed
 
-    raw_data = IEMOCAP(experiment_name='mfcc')
-    train_data = raw_data.train_data
-    for i, x in enumerate(train_data):
-        train_data[i] = transforms.ToTensor()(x)
+    train_data = IEMOCAP(experiment_name='mfcc', mode='train')
+    val_data = IEMOCAP(experiment_name='mfcc', mode='val')
+    test_data = IEMOCAP(experiment_name='mfcc', mode='test')
 
-    val_data = raw_data.val_data
-    test_data = raw_data.test_data
-
-    train_data_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=4)
-    val_data_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=True, num_workers=4)
-    test_data_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=True, num_workers=4)
-
+    train_data_loader = DataLoader(train_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=4)
+    val_data_loader = DataLoader(val_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=4)
+    test_data_loader = DataLoader(test_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=4)
+    #
     custom_blstm = LSTMBlock(
         input_dim=args.input_dim,
         batch_size=args.batch_size,
