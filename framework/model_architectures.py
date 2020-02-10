@@ -8,7 +8,7 @@ class LSTMBlock(nn.Module):
         super(LSTMBlock, self).__init__()
         self.input_dim = input_dim
         self.batch_size = batch_size
-        self.input_shape = (self.batch_size, 900, self.input_dim)
+        self.input_shape = (self.batch_size, 1332, self.input_dim)
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
         self.output_dim = output_dim
@@ -28,7 +28,6 @@ class LSTMBlock(nn.Module):
 
         out,_ = self.layer_dict['blstm'].forward(out)
         out = out[:, -1, :]
-        print(out.shape)
         # print(type(out))
         # print(type(out[0]))
         # print(out[0].shape)
@@ -45,9 +44,10 @@ class LSTMBlock(nn.Module):
 
     def forward(self, x):
         out = x
-        out = self.layer_dict['blstm'].forward(out)
+        out,_ = self.layer_dict['blstm'].forward(out)
+        out = out[:, -1, :]
         out = self.layer_dict['linear'].forward(out)
-
+        print(out.shape)
         return out
 
     def reset_parameters(self):

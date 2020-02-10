@@ -10,14 +10,13 @@ from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
 
 def pad_collate(batch):
   (xx, yy) = zip(*batch)
-  x_lens = [x.shape for x in xx]
 
-  xx_pad = pad_sequence(xx, batch_first=True, padding_value=0)
+  xx_trans = [x.transpose(0,1) for x in xx]
+  xx_pad = pad_sequence(xx_trans, batch_first=True)
 
-  x_packed = pack_padded_sequence(xx_pad, x_lens, batch_first=True, enforce_sorted=False)
-  y_list = [y for y in yy]
+  y_list = torch.Tensor([y for y in yy])
 
-  return [x_packed, y_list]
+  return xx_pad, y_list
 
 if __name__ == '__main__':
     args = get_args()  # get arguments from command line

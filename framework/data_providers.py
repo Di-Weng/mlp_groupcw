@@ -19,8 +19,8 @@ class IEMOCAP(data.Dataset):
     def __init__(self, experiment_name, mode='train', transform = None):
         # 相对转绝对T
         self.mfcc_datafolder = '../dataset/'
-        self.emotion_classes = {"ang": torch.Tensor([1, 0, 0, 0]), "hap": torch.Tensor([0, 1, 0, 0]),
-                                "neu": torch.Tensor([0, 0, 1, 0]), "sad": torch.Tensor([0, 0, 0, 1])}
+        self.emotion_classes = {"ang": 0, "hap": 1,
+                                "neu": 2, "sad": 3}
         self.fd_root = '../feature_data/' + experiment_name
         self.mode = mode
         if not os.path.exists(self.fd_root+'_' + self.mode):
@@ -92,8 +92,8 @@ class IEMOCAP(data.Dataset):
         return fmt_str
 
     def test(self):
-        return self.data
+
+        return [temp[0] for temp in self.data]
 if __name__ == '__main__':
 
-    ama = IEMOCAP('mfcc',mode='test')
-
+    ama = IEMOCAP('mfcc',mode='train')
