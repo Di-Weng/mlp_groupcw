@@ -47,7 +47,6 @@ class LSTMBlock(nn.Module):
         out,_ = self.layer_dict['blstm'].forward(out)
         out = out[:, -1, :]
         out = self.layer_dict['linear'].forward(out)
-        print(out.shape)
         return out
 
     def reset_parameters(self):
