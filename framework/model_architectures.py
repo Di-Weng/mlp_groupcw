@@ -13,7 +13,7 @@ class LSTMBlock(nn.Module):
         self.num_layers = num_layers
         self.output_dim = output_dim
         self.build_module()
-<<<<<<< HEAD
+
         #prenet_config = None	
         #rnn_config = RNNConfig(input_size=80, hidden_size=512, num_layers=1, residual=True, dropout=0.)
         #self.pretrained_apc = APCModel(mel_dim=80, prenet_config=prenet_config, rnn_config=rnn_config).cuda()
