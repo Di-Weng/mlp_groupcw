@@ -1,12 +1,10 @@
 import torch
 import torch.nn as nn
-from APC.model import APCModel
-from APC.solver import PrenetConfig, RNNConfig
 
 
 class LSTMBlock(nn.Module):
 
-    def __init__(self, input_dim, batch_size, hidden_dim, output_dim=4, num_layers=3):
+    def __init__(self, input_dim, batch_size, hidden_dim, output_dim=4, num_layers=1):
         super(LSTMBlock, self).__init__()
         self.input_dim = input_dim
         self.batch_size = batch_size
@@ -15,12 +13,13 @@ class LSTMBlock(nn.Module):
         self.num_layers = num_layers
         self.output_dim = output_dim
         self.build_module()
-        prenet_config = None	
-        rnn_config = RNNConfig(input_size=80, hidden_size=512, num_layers=3, residual=True, dropout=0.)
-        self.pretrained_apc = APCModel(mel_dim=80, prenet_config=prenet_config, rnn_config=rnn_config).cuda()
+
+        #prenet_config = None	
+        #rnn_config = RNNConfig(input_size=80, hidden_size=512, num_layers=1, residual=True, dropout=0.)
+        #self.pretrained_apc = APCModel(mel_dim=80, prenet_config=prenet_config, rnn_config=rnn_config).cuda()
         #for param in self.pretrained_apc.parameters():
         #    param.requires_grad = False
-        pretrained_weights_path = 'bs32-rhl3-rhs512-rd0-adam-res-ts20.pt'
+       # pretrained_weights_path = 'bs32-rhl3-rhs512-rd0-adam-res-ts20.pt'
         #self.pretrained_apc.load_state_dict(torch.load(pretrained_weights_path))
         #self.device = torch.cuda.current_device()
         #self.pretrained_apc.to(self.device)
