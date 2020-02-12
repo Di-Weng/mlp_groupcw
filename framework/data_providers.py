@@ -12,8 +12,8 @@ import random
 import os
 from torch.utils import data
 import torch
-from APC.apc_model import APCModel
-from APC.utils import PrenetConfig, RNNConfig
+from APC.model import APCModel
+from APC.solver import PrenetConfig, RNNConfig
 
 from tqdm import tqdm
 

@@ -23,7 +23,7 @@ from torch.utils import data
 from torch.autograd import Variable
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
-from apc.model import APCModel
+from APC.model import APCModel
 from utility.audio import plot_spectrogram_to_numpy
 
 

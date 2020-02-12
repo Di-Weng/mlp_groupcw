@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from apc_model import APCModel
-from utils import PrenetConfig, RNNConfig
+from APC.model import APCModel
+from APC.solver import PrenetConfig, RNNConfig
 
 
 class LSTMBlock(nn.Module):
@@ -16,7 +16,7 @@ class LSTMBlock(nn.Module):
         self.output_dim = output_dim
         self.build_module()
         prenet_config = None	
-        rnn_config = RNNConfig(input_size=80, hidden_size=512, num_layers=1, residual=True, dropout=0.)
+        rnn_config = RNNConfig(input_size=80, hidden_size=512, num_layers=3, residual=True, dropout=0.)
         self.pretrained_apc = APCModel(mel_dim=80, prenet_config=prenet_config, rnn_config=rnn_config).cuda()
         #for param in self.pretrained_apc.parameters():
         #    param.requires_grad = False
