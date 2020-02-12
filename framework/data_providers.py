@@ -30,6 +30,7 @@ class IEMOCAP(data.Dataset):
         self.mode = mode
         if not os.path.exists(self.fd_root+'_' + self.mode):
             self.compute_mspc()
+            self.compute_mfcc()
         with open(self.fd_root+'_' + self.mode,'rb') as f:
             self.data = pickle.load(f)
 

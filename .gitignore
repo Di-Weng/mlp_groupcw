@@ -207,3 +207,8 @@ IEMOCAP
 .idea
 /dataset/*
 desktop.ini
+framework/mfcc/saved_models/
+feature_data/mfcc_test
+feature_data/mfcc_train
+feature_data/mfcc_val
+dataset.zip
