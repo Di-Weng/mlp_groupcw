@@ -24,9 +24,9 @@ if __name__ == '__main__':
     rng = np.random.RandomState(seed=args.seed)  # set the seeds for the experiment
     torch.manual_seed(seed=args.seed)  # sets pytorch's seed
 
-    train_data = IEMOCAP(experiment_name='mpc', mode='train')
-    val_data = IEMOCAP(experiment_name='mpc', mode='val')
-    test_data = IEMOCAP(experiment_name='mpc', mode='test')
+    train_data = IEMOCAP(experiment_name=args.experiment_name, mode='train')
+    val_data = IEMOCAP(experiment_name=args.experiment_name, mode='val')
+    test_data = IEMOCAP(experiment_name=args.experiment_name, mode='test')
 
     train_data_loader = DataLoader(train_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=4)
     val_data_loader = DataLoader(val_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=4)
