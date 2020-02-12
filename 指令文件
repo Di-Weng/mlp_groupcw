@@ -1,6 +1,6 @@
 #训练指令
-
 python train_evaluate_speech_emotion_recognition.py --batch_size 100 --input_size 768 --seed 0 --experiment_name mpc 
+
 
 
 
@@ -8,3 +8,13 @@ python train_evaluate_speech_emotion_recognition.py --batch_size 100 --input_siz
 
 #更新framework文件
 gcloud compute scp --recurse D:\GithubProject\mlp_coursework2\pytorch_mlp_framework wd@mlpractical-1:/home/wd/mlp_coursework2
+
+#更新framework文件
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mfcc_01 D:\GithubProject\mlp_groupcw/framework/mfcc_01
+
+#MPC文件上传
+gcloud compute scp D:\GithubProject\mlp_groupcw\framework\MPC\mockingjay-500000.ckpt wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/MPC/mockingjay-500000.ckpt
+
+#MPC文件fix
+python fix.py
+#MPC实验

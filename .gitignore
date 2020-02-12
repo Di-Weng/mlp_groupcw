@@ -212,3 +212,4 @@ feature_data/mfcc_test
 feature_data/mfcc_train
 feature_data/mfcc_val
 dataset.zip
+framework/mfcc_01/saved_models/
