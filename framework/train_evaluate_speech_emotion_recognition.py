@@ -12,6 +12,7 @@ def pad_collate(batch):
   (xx, yy) = zip(*batch)
 
   xx_trans = [x.transpose(0,1) for x in xx]
+  #print(xx_trans.shape)
   xx_pad = pad_sequence(xx_trans, batch_first=True)
 
   y_list = torch.Tensor([y for y in yy])
@@ -23,9 +24,9 @@ if __name__ == '__main__':
     rng = np.random.RandomState(seed=args.seed)  # set the seeds for the experiment
     torch.manual_seed(seed=args.seed)  # sets pytorch's seed
 
-    train_data = IEMOCAP(experiment_name='mfcc', mode='train')
-    val_data = IEMOCAP(experiment_name='mfcc', mode='val')
-    test_data = IEMOCAP(experiment_name='mfcc', mode='test')
+    train_data = IEMOCAP(experiment_name='mpc', mode='train')
+    val_data = IEMOCAP(experiment_name='mpc', mode='val')
+    test_data = IEMOCAP(experiment_name='mpc', mode='test')
 
     train_data_loader = DataLoader(train_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=4)
     val_data_loader = DataLoader(val_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=4)

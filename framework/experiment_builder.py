@@ -265,10 +265,10 @@ class ExperimentBuilder(nn.Module):
             criteria = int(self.num_epochs * 0.1)
             window_valloss = total_losses['val_loss'][-(criteria+1):]
             sorted_window_valloss = sorted(window_valloss,reverse = False)
-            if (len(window_valloss) >= (criteria + 1)):
-                if (sorted_window_valloss[0] == window_valloss[0]):
-                    print("Early Stop at Epoch {}:".format(epoch_idx), "Best val model index", self.best_val_model_idx, "Best val model accuracy", self.best_val_model_acc)
-                    break
+            #if (len(window_valloss) >= (criteria + 1)):
+            #    if (sorted_window_valloss[0] == window_valloss[0]):
+            #        print("Early Stop at Epoch {}:".format(epoch_idx), "Best val model index", self.best_val_model_idx, "Best val model accuracy", self.best_val_model_acc)
+            #        break
 
         print("Generating test set evaluation metrics")
         self.load_model(model_save_dir=self.experiment_saved_models, model_idx=self.best_val_model_idx,
