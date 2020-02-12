@@ -260,5 +260,4 @@ feature_data/mspc_train
 feature_data/mspc_val
 *.ckpt
 framework/MPC/*.ckpt
-C
 framework/MPC/
