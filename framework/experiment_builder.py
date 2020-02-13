@@ -87,7 +87,9 @@ class ExperimentBuilder(nn.Module):
 
         if not os.path.exists(self.experiment_folder):  # If experiment directory does not exist
             os.mkdir(self.experiment_folder)  # create the experiment directory
+        if not os.path.exists(self.experiment_logs):
             os.mkdir(self.experiment_logs)  # create the experiment log directory
+        if not os.path.exists(self.experiment_saved_models):
             os.mkdir(self.experiment_saved_models)  # create the experiment saved models directory
 
         self.num_epochs = num_epochs
