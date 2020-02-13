@@ -28,9 +28,9 @@ if __name__ == '__main__':
     val_data = IEMOCAP(experiment_name=args.experiment_name, mode='val')
     test_data = IEMOCAP(experiment_name=args.experiment_name, mode='test')
 
-    train_data_loader = DataLoader(train_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=4)
-    val_data_loader = DataLoader(val_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=4)
-    test_data_loader = DataLoader(test_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=4)
+    train_data_loader = DataLoader(train_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=0)
+    val_data_loader = DataLoader(val_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=0)
+    test_data_loader = DataLoader(test_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=0)
     #
     custom_blstm = LSTMBlock(
         input_dim=args.input_dim,
