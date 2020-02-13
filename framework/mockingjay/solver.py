@@ -269,7 +269,7 @@ class Solver():
     def down_sample_frames(self, spec):
         left_over = spec.shape[1] % self.dr
         if left_over != 0: spec = spec[:, :-left_over, :]
-        spec_stacked = spec.view(spec.shape[0], spec.shape[1]//self.dr, spec.shape[2]*self.dr)
+        spec_stacked = spec.reshape(spec.shape[0], spec.shape[1]//self.dr, spec.shape[2]*self.dr)
         return spec_stacked
 
 
