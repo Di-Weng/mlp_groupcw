@@ -16,8 +16,57 @@ gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mfcc_
 #MPC文件上传
 gcloud compute scp D:\GithubProject\mlp_groupcw\framework\MPC\mockingjay-500000.ckpt wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/MPC/mockingjay-500000.ckpt
 
+#MPC文件上传
+gcloud compute scp D:\download\mpc_.zip wd@mlp-groupcw:/home/wd/mpc_.zip
+
+
 #MPC文件fix
 python fix.py
 
-#MPC实验
- python train_evaluate_speech_emotion_recognition.py --batch_size 100 --input_dim 768 --seed 0 --hidden_dim 1024 --num_epochs 1000 --experiment_name mpc_01
+#MPC实验_1 done server
+python train_evaluate_speech_emotion_recognition.py --batch_size 40 --input_dim 768 --seed 0 --hidden_dim 256 --num_epochs 600 --num_layers 1 --experiment_name mpc --continue_from_epoch -1
+
+#拉取MPC实验_1 结果 done
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mpc/result_outputs D:\GithubProject\mlp_groupcw\framework\MPC_01\result_outputs
+
+#拉取MPC实验_1 最佳模型 done
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mpc/saved_models/train_model_312 D:\GithubProject\mlp_groupcw\framework\MPC_01\best_models\train_model_312
+
+#MPC实验_2
+python train_evaluate_speech_emotion_recognition.py --batch_size 40 --input_dim 768 --seed 0 --hidden_dim 256 --num_epochs 1000 --num_layers 2 --experiment_name mpc --continue_from_epoch -2
+
+#拉取MPC实验_2 结果 done
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/MPC_02/result_outputs D:\GithubProject\mlp_groupcw\framework\MPC_02\result_outputs
+
+#拉取MPC实验_2 最佳模型
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/MPC_02/saved_models/train_model_250 D:\GithubProject\mlp_groupcw\framework\MPC_02\best_models\train_model_250
+
+#MPC实验_3 done
+python train_evaluate_speech_emotion_recognition.py --batch_size 40 --input_dim 768 --seed 0 --hidden_dim 256 --num_epochs 600 --num_layers 3 --experiment_name mpc 
+
+#拉取MPC实验_3 结果 done
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mpc/result_outputs D:\GithubProject\mlp_groupcw\framework\MPC_03\result_outputs
+
+#拉取MPC实验_2 最佳模型 done
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mpc/saved_models/train_model_257 D:\GithubProject\mlp_groupcw\framework\MPC_03\best_models\train_model_257
+
+#MFCC实验_1 done 
+python train_evaluate_speech_emotion_recognition.py --batch_size 40 --input_dim 40 --seed 0 --hidden_dim 256 --num_epochs 600 --num_layers 1 --experiment_name mfcc  
+
+#MFCC实验_2 done 本地
+python train_evaluate_speech_emotion_recognition.py --batch_size 40 --input_dim 40 --seed 0 --hidden_dim 256 --num_epochs 600 --num_layers 2 --experiment_name mfcc
+
+#拉取MFCC实验_2 结果 done server
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mfcc/result_outputs D:\GithubProject\mlp_groupcw\framework\mfcc_02\result_outputs
+
+#拉取MFCC实验_2 最佳模型 done server
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mfcc/saved_models/train_model_493 D:\GithubProject\mlp_groupcw\framework\mfcc_02\best_models\train_model_493
+
+#MFCC实验_3 ing server
+python train_evaluate_speech_emotion_recognition.py --batch_size 40 --input_dim 40 --seed 0 --hidden_dim 256 --num_epochs 600 --num_layers 3 --experiment_name mfcc  
+
+#拉取MFCC实验_3 结果 done server
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mfcc/result_outputs D:\GithubProject\mlp_groupcw\framework\mfcc_03\result_outputs
+
+#拉取MFCC实验_3 最佳模型 done server
+gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mfcc/saved_models/train_model_401 D:\GithubProject\mlp_groupcw\framework\mfcc_03\best_models\train_model_401
