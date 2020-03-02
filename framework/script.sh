@@ -32,5 +32,5 @@ mkdir -p ${TMP}/datasets/
 export DATASET_DIR=${TMP}/datasets/
 # Activate the relevant virtual environment:
 
-source /home/${STUDENT_ID}/conda/bin/activate mlp_groupcw
+source /home/${STUDENT_ID}/conda/bin/activate mlp_cw
 python train_evaluate_speech_emotion_recognition.py --batch_size 40 --input_dim 40 --seed 0 --hidden_dim 256 --num_epochs 600 --num_layers 3 --experiment_name mfcc
