@@ -80,5 +80,16 @@ sbatch --gres=gpu:5 --constraint=gpu script.sh
 #从DICE上传dataset 文件夹
 rsync -ua --progress /afs/inf.ed.ac.uk/user/s19/s1968246/Downloads/mlp_groupcw/dataset s1968246@mlp.inf.ed.ac.uk:/home/s1968246/mlp_groupcw
 
+#从DICE上传feature_data 文件夹
+rsync -ua --progress /afs/inf.ed.ac.uk/user/s19/s1968246/Downloads/feature_data s1968246@mlp.inf.ed.ac.uk:/home/s1968246/mlp_groupcw
+
+```
+To better manage jobs of different types, we partitioned our cluster into 4 partitions:
+interactive -> max job length: 2 hours (2 nodes) -> Used only for interactively debugging your code.
+short  -> max job length: 4 hours (2 nodes) -> Used for short jobs up to 4 hours. (i.e. Small conv-nets)
+standard -> 8 hours (15 nodes) -> The largest partition in the cluster, can run jobs for up to 8 hours at a time.
+longjobs -> 3 days 8 hours (6 nodes) -> Used for very long jobs up to 3 days and 8 hours. This can be massive deep nets on very large datasets.
+```
+
 #调试
 srun -p interactive --gres=gpu:2 --pty python train_evaluate_speech_emotion_recognition.py --batch_size 40 --input_dim 40 --seed 0 --hidden_dim 256 --num_epochs 600 --num_layers 3 --experiment_name mfcc

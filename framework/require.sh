@@ -1,0 +1,11 @@
+pip install librosa
+pip install editdistance
+pip install operator
+pip install kaldiio
+pip install pandas
+pip install ipdb
+pip install tensorboardX
+pip install storage_utils
+pip install mmsdk
+pip install pydub
+pip install joblib
