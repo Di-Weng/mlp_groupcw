@@ -70,3 +70,15 @@ gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mfcc/
 
 #拉取MFCC实验_3 最佳模型 done server
 gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mfcc/saved_models/train_model_401 D:\GithubProject\mlp_groupcw\framework\mfcc_03\best_models\train_model_401
+
+
+#cluster
+
+#运行
+sbatch --gres=gpu:5 --constraint=gpu script.sh
+
+#从DICE上传dataset 文件夹
+rsync -ua --progress /afs/inf.ed.ac.uk/user/s19/s1968246/Downloads/mlp_groupcw/dataset s1968246@mlp.inf.ed.ac.uk:/home/s1968246/mlp_groupcw
+
+#调试
+srun -p interactive --gres=gpu:2 --pty python train_evaluate_speech_emotion_recognition.py --batch_size 40 --input_dim 40 --seed 0 --hidden_dim 256 --num_epochs 600 --num_layers 3 --experiment_name mfcc
