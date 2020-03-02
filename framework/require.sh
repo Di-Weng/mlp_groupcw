@@ -9,3 +9,8 @@ pip install storage_utils
 pip install mmsdk
 pip install pydub
 pip install joblib
+pip install numpy scipy matplotlib
+pip pbzip2 pydrive
+pip install pillow tqdm
+pip install GPUtil
+conda install pytorch torchvision cudatoolkit=9.0 -c pytorch
