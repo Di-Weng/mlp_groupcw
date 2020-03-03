@@ -73,6 +73,8 @@ gcloud compute scp --recurse wd@mlp-groupcw:/home/wd/mlp_groupcw/framework/mfcc/
 
 
 #cluster
+#DICE 传到MLP cluster
+cp -r /afs/inf.ed.ac.uk/user/s19/s1968246/mlp_groupcw/. ~/mlp_groupcw
 
 #运行
 sbatch --gres=gpu:5 --constraint=gpu script.sh
