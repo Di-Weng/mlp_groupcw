@@ -36,18 +36,19 @@ class IEMOCAP(data.Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        x, y = self.data[idx][0], self.data[idx][1]
+        x, y, z = self.data[idx][0], self.data[idx][1], self.data[idx][2]
 
         if self.transform is not None:
             x = self.transform(x)
 
-        return x, y
+        return x, y, z
 
     def compute_feature(self, experiment_name):
         emotion_data = {}
         random.seed(123456)
         prenet_config = None
-        	
+
+        print("here")
         if experiment_name=="mpc":
             model_path = 'MPC/mockingjay-500000.ckpt'
             mockingjay = get_mockingjay_model(from_path=model_path)
@@ -59,24 +60,35 @@ class IEMOCAP(data.Dataset):
             for wav_file in tqdm(os.listdir(emotion_folder)):
                 if wav_file.startswith('.'):
                     continue
+                gender=wav_file[-8]
+                #print(gender)
+                if gender == 'F':
+                    gender = 0
+                elif gender == 'M':
+                    gender = 1
+                assert gender == 0 or gender == 1
+                #print(gender)
                 wav_path = emotion_folder + wav_file
                 wav_sr = 16000
                 y, sr = librosa.load(path=wav_path, sr=wav_sr)
                 if experiment_name=="mfcc":
                     feature = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40, hop_length=int(sr/100), n_fft=int(sr/40))
-
+                    #print(feature.shape)
                 if experiment_name=="mspc":
                     feature=librosa.feature.melspectrogram(y=y, sr=sr,n_mels=160, n_fft=int(sr/40), hop_length=int(sr/100))
                 if experiment_name=="mpc":
                     feature=librosa.feature.melspectrogram(y=y, sr=sr,n_mels=160, n_fft=int(sr/40), hop_length=int(sr/100))
                     feature=np.expand_dims(feature, axis=0)
+
                     feature=np.transpose(feature, (0, 2, 1))
+                    #print(feature.shape)
                     feature=torch.Tensor(feature)
                     feature=feature.to('cpu')
                     
                     length=[feature.shape[1]]
                     length=torch.Tensor(length)
                     length=length.to('cpu')
+
 
                 #_, mel = pretrained_apc.forward(mel, length)
                                 # reps.shape: (batch_size, seq_len, hidden_size)
@@ -85,12 +97,15 @@ class IEMOCAP(data.Dataset):
                     feature=feature[-1,:,:]
                 
                     feature=feature.transpose(1, 0)
+                    #print(feature.shape)
                     feature=feature.to("cpu")
-                    feature=feature.detach() 
+                    feature=feature.detach()
+                #print(emotion_name)
    
-                labels = self.emotion_classes[emotion_name]
+                emotion = self.emotion_classes[emotion_name]
      
-                temp_list.append((feature, labels))
+                temp_list.append((feature, emotion, gender))
+                #print("actually: "+ str(temp_list[0][2]))
             emotion_data[emotion_name] = temp_list
 
         train_data = []
@@ -127,4 +142,4 @@ class IEMOCAP(data.Dataset):
 
 if __name__ == '__main__':
 
-    ama = IEMOCAP('mpc',mode='train')
+    ama = IEMOCAP('mfcc',mode='train')

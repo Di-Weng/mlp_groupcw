@@ -12,7 +12,7 @@ from storage_utils import save_statistics
 
 
 class ExperimentBuilder(nn.Module):
-    def __init__(self, network_model, experiment_name, num_epochs, train_data, val_data,
+    def __init__(self, network_model, experiment_name, num_epochs, gender_MTL, train_data, val_data,
                  test_data, weight_decay_coefficient, use_gpu, continue_from_epoch=-1):
         """
         Initializes an ExperimentBuilder object. Such an object takes care of running training and evaluation of a deep net
@@ -30,6 +30,7 @@ class ExperimentBuilder(nn.Module):
         """
         super(ExperimentBuilder, self).__init__()
 
+        self.gender_MTL=gender_MTL
 
         self.experiment_name = experiment_name
         self.model = network_model
@@ -119,7 +120,7 @@ class ExperimentBuilder(nn.Module):
 
         return total_num_params
 
-    def run_train_iter(self, x, y):
+    def run_train_iter(self, x, y, z):
         """
         Receives the inputs and targets for the model and runs a training iteration. Returns loss and accuracy metrics.
         :param x: The inputs to the model. A numpy array of shape batch_size, channels, height, width
@@ -127,12 +128,17 @@ class ExperimentBuilder(nn.Module):
         :return: the loss and accuracy for this batch
         """
         self.train()  # sets model to training mode (in case batch normalization or other methods have different procedures for training and evaluation)
-        x, y = x.float().to(device=self.device), y.long().to(
+        x, y, z = x.float().to(device=self.device), y.long().to(
+            device=self.device), z.long().to(
             device=self.device)  # send data to device as torch tensors
-        out = self.model.forward(x)  # forward the data in the model
+        out1, out2 = self.model.forward(x)  # forward the data in the model
 
+        #print(out1.shape)
+        #print(y.shape)
+        loss = F.cross_entropy(input=out1, target=y)  # compute loss
 
-        loss = F.cross_entropy(input=out, target=y)  # compute loss
+        if self.gender_MTL:
+            loss+=F.cross_entropy(input=out2, target=z)
 
         self.optimizer.zero_grad()  # set all weight grads from previous training iters to 0
         loss.backward()  # backpropagate to compute gradients for current iter loss
@@ -140,11 +146,13 @@ class ExperimentBuilder(nn.Module):
         self.optimizer.step()  # update network parameters
         self.learning_rate_scheduler.step(epoch=self.current_epoch)
 
-        _, predicted = torch.max(out.data, 1)  # get argmax of predictions
-        accuracy = np.mean(list(predicted.eq(y.data).cpu()))  # compute accuracy
-        return loss.cpu().data.numpy(), accuracy
+        _, predicted1 = torch.max(out1.data, 1)  # get argmax of predictions
+        _, predicted2 = torch.max(out2.data, 1)  # get argmax of predictions
+        accuracy1 = np.mean(list(predicted1.eq(y.data).cpu()))  # compute accuracy
+        accuracy2 = np.mean(list(predicted2.eq(z.data).cpu()))
+        return loss.cpu().data.numpy(), accuracy1, accuracy2
 
-    def run_evaluation_iter(self, x, y):
+    def run_evaluation_iter(self, x, y, z):
         """
         Receives the inputs and targets for the model and runs an evaluation iterations. Returns loss and accuracy metrics.
         :param x: The inputs to the model. A numpy array of shape batch_size, channels, height, width
@@ -152,15 +160,20 @@ class ExperimentBuilder(nn.Module):
         :return: the loss and accuracy for this batch
         """
         self.eval()  # sets the system to validation mode
-        x, y = x.float().to(device=self.device), y.long().to(
+        x, y, z = x.float().to(device=self.device), y.long().to(
+            device=self.device), z.long().to(
             device=self.device)  # convert data to pytorch tensors and send to the computation device
-        out = self.model.forward(x)  # forward the data in the model
+        out1, out2 = self.model.forward(x)  # forward the data in the model
 
-        loss = F.cross_entropy(input=out, target=y)  # compute loss
+        loss = F.cross_entropy(input=out1, target=y)  # compute loss
 
-        _, predicted = torch.max(out.data, 1)  # get argmax of predictions
-        accuracy = np.mean(list(predicted.eq(y.data).cpu()))  # compute accuracy
-        return loss.cpu().data.numpy(), accuracy
+        if self.gender_MTL:
+            loss+= F.cross_entropy(input=out2, target=z)
+        _, predicted1 = torch.max(out1.data, 1)  # get argmax of predictions
+        _, predicted2 = torch.max(out2.data, 1)  # get argmax of predictions
+        accuracy1 = np.mean(list(predicted1.eq(y.data).cpu()))  # compute accuracy
+        accuracy2 = np.mean(list(predicted2.eq(z.data).cpu()))  # compute accuracy
+        return loss.cpu().data.numpy(), accuracy1, accuracy2
 
     def save_model(self, model_save_dir, model_save_name, model_idx, best_validation_model_idx,
                    best_validation_model_acc):
@@ -197,22 +210,24 @@ class ExperimentBuilder(nn.Module):
         Runs experiment train and evaluation iterations, saving the model and best val model and val model accuracy after each epoch
         :return: The summary current_epoch_losses from starting epoch to total_epochs.
         """
-        total_losses = {"train_acc": [], "train_loss": [], "val_acc": [],
+        total_losses = {"val_Gender_acc":[], "val_SER_acc":[], "train_acc_GENDER": [], "train_acc_SER": [], "train_loss": [],
                         "val_loss": []}  # initialize a dict to keep the per-epoch metrics
         for i, epoch_idx in enumerate(range(self.starting_epoch, self.num_epochs)):
             epoch_start_time = time.time()
-            current_epoch_losses = {"train_acc": [], "train_loss": [], "val_acc": [], "val_loss": []}
+            current_epoch_losses = {"train_acc_SER": [], "train_acc_GENDER": [], "train_loss": [],
+                                    "val_Gender_acc": [], "val_SER_acc": [], "val_loss": []}
             self.current_epoch = epoch_idx
 
             with tqdm.tqdm(total=len(self.train_data), ascii=True) as pbar_train:  # create a progress bar for training
                 try:
 
-                    for idx, (x, y) in enumerate(self.train_data):  # get data batches
-                        loss, accuracy = self.run_train_iter(x=x, y=y)  # take a training iter step
+                    for idx, (x, y, z) in enumerate(self.train_data):  # get data batches
+                        loss, accuracy1, accuracy2 = self.run_train_iter(x=x, y=y, z=z)  # take a training iter step
                         current_epoch_losses["train_loss"].append(loss)  # add current iter loss to the train loss list
-                        current_epoch_losses["train_acc"].append(accuracy)  # add current iter acc to the train acc list
+                        current_epoch_losses["train_acc_SER"].append(accuracy1)  # add current iter acc to the train acc list
+                        current_epoch_losses["train_acc_GENDER"].append(accuracy2)
                         pbar_train.update(1)
-                        pbar_train.set_description("loss: {:.4f}, accuracy: {:.4f}".format(loss, accuracy))
+                        pbar_train.set_description("loss: {:.4f}, accuracy_SER: {:.4f}, accuracy_Gender: {:.4f}".format(loss, accuracy1, accuracy2))
                 except KeyboardInterrupt:
                     pbar_train.close()
                     raise
@@ -220,17 +235,18 @@ class ExperimentBuilder(nn.Module):
 
             with tqdm.tqdm(total=len(self.val_data), ascii=True) as pbar_val:  # create a progress bar for validation
                 try:
-                    for x, y in self.val_data:  # get data batches
-                        loss, accuracy = self.run_evaluation_iter(x=x, y=y)  # run a validation iter
+                    for x, y, z in self.val_data:  # get data batches
+                        loss, accuracy1, accuracy2 = self.run_evaluation_iter(x=x, y=y, z=z)  # run a validation iter
                         current_epoch_losses["val_loss"].append(loss)  # add current iter loss to val loss list.
-                        current_epoch_losses["val_acc"].append(accuracy)  # add current iter acc to val acc lst.
+                        current_epoch_losses["val_SER_acc"].append(accuracy1)  # add current iter acc to val acc lst.
+                        current_epoch_losses["val_Gender_acc"].append(accuracy2)  # add current iter acc to val acc lst.
                         pbar_val.update(1)  # add 1 step to the progress bar
-                        pbar_val.set_description("loss: {:.4f}, accuracy: {:.4f}".format(loss, accuracy))
+                        pbar_val.set_description("loss: {:.4f}, accuracy_SER: {:.4f}, accuracy_Gender: {:.4f}".format(loss, accuracy1, accuracy2))
                 except KeyboardInterrupt:
                     pbar_val.close()
                     raise
                 pbar_val.close()
-            val_mean_accuracy = np.mean(current_epoch_losses['val_acc'])
+            val_mean_accuracy = np.mean(current_epoch_losses['val_SER_acc'])
             if val_mean_accuracy > self.best_val_model_acc:  # if current epoch's mean val acc is greater than the saved best val acc then
                 self.best_val_model_acc = val_mean_accuracy  # set the best val model acc to be current epoch's val accuracy
                 self.best_val_model_idx = epoch_idx  # set the experiment-wise best val idx to be the current epoch's idx
@@ -276,18 +292,19 @@ class ExperimentBuilder(nn.Module):
         self.load_model(model_save_dir=self.experiment_saved_models, model_idx=self.best_val_model_idx,
                         # load best validation model
                         model_save_name="train_model")
-        current_epoch_losses = {"test_acc": [], "test_loss": []}  # initialize a statistics dict
+        current_epoch_losses = {"test_Gender_acc": [],"test_SER_acc": [], "test_loss": []}  # initialize a statistics dict
 
         with tqdm.tqdm(total=len(self.test_data), ascii=True) as pbar_test:  # ini a progress bar
             try:
-                for x, y in self.test_data:  # sample batch
-                    loss, accuracy = self.run_evaluation_iter(x=x,
-                                                              y=y)  # compute loss and accuracy by running an evaluation step
+                for x, y, z in self.test_data:  # sample batch
+                    loss, accuracy1, accuracy2 = self.run_evaluation_iter(x=x,
+                                                              y=y, z=z)  # compute loss and accuracy by running an evaluation step
                     current_epoch_losses["test_loss"].append(loss)  # save test loss
-                    current_epoch_losses["test_acc"].append(accuracy)  # save test accuracy
+                    current_epoch_losses["test_SER_acc"].append(accuracy1)  # save test accuracy
+                    current_epoch_losses["test_Gender_acc"].append(accuracy2)  # save test accuracy
                     pbar_test.update(1)  # update progress bar status
                     pbar_test.set_description(
-                        "loss: {:.4f}, accuracy: {:.4f}".format(loss, accuracy))  # update progress bar string output
+                        "loss: {:.4f}, SER_ accuracy: {:.4f},  Test_ accuracy: {:.4f},".format(loss, accuracy1, accuracy2))  # update progress bar string output
             except KeyboardInterrupt:
                 pbar_test.close()
                 raise
