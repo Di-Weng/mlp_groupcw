@@ -38,7 +38,7 @@ def get_args():
                         default=1, help='Number of BLSTM layers')
     parser.add_argument('--experiment_name', nargs="?", type=str, default="exp_1",
                         help='Experiment name - to be used for building the experiment folder')
-    parser.add_argument('--experiment_no',oargs="?", type=str, default="000",
+    parser.add_argument('--experiment_no', nargs="?", type=str, default="000",
                         help='Experiment no - to be used for building the experiment folder')
     parser.add_argument('--use_gpu', nargs="?", type=str2bool, default=True,
                         help='A flag indicating whether we will use GPU acceleration or not')
