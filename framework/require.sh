@@ -13,4 +13,6 @@ pip install numpy scipy matplotlib
 pip pbzip2 pydrive
 pip install pillow tqdm
 pip install GPUtil
+pip install pillow==6.1
+pip install pyyaml
 conda install pytorch torchvision cudatoolkit=9.0 -c pytorch

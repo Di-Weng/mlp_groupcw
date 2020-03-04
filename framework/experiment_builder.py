@@ -50,7 +50,7 @@ class ExperimentBuilder(nn.Module):
 
         print('here')
 
-        self.model.reset_parameters()  # re-initialize network parameters
+        # self.model.reset_parameters()  # re-initialize network parameters
         self.train_data = train_data
         self.val_data = val_data
         self.test_data = test_data
