@@ -49,6 +49,7 @@ if __name__ == '__main__':
                                         experiment_name=args.experiment_name,
                                         num_epochs=args.num_epochs,
                                         gender_MTL=args.genderMTL,
+                                        experiment_no=args.experiment_no,
                                         weight_decay_coefficient=args.weight_decay_coefficient,
                                         use_gpu=args.use_gpu,
                                         continue_from_epoch=args.continue_from_epoch,

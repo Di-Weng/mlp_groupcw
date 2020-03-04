@@ -12,7 +12,7 @@ from storage_utils import save_statistics
 
 
 class ExperimentBuilder(nn.Module):
-    def __init__(self, network_model, experiment_name, num_epochs, gender_MTL, train_data, val_data,
+    def __init__(self, network_model, experiment_no, experiment_name, num_epochs, gender_MTL, train_data, val_data,
                  test_data, weight_decay_coefficient, use_gpu, continue_from_epoch=-1):
         """
         Initializes an ExperimentBuilder object. Such an object takes care of running training and evaluation of a deep net
@@ -33,6 +33,7 @@ class ExperimentBuilder(nn.Module):
         self.gender_MTL=gender_MTL
 
         self.experiment_name = experiment_name
+        self.experiment_no = experiment_no
         self.model = network_model
 
         if torch.cuda.device_count() > 1 and use_gpu:
@@ -78,7 +79,7 @@ class ExperimentBuilder(nn.Module):
                                                                             T_max=num_epochs,
                                                                             eta_min=0.00002)
         # Generate the directory names
-        self.experiment_folder = os.path.abspath(experiment_name)
+        self.experiment_folder = os.path.abspath(experiment_name+experiment_no)
         self.experiment_logs = os.path.abspath(os.path.join(self.experiment_folder, "result_outputs"))
         self.experiment_saved_models = os.path.abspath(os.path.join(self.experiment_folder, "saved_models"))
 
