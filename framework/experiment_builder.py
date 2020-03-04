@@ -12,7 +12,7 @@ from storage_utils import save_statistics
 
 
 class ExperimentBuilder(nn.Module):
-    def __init__(self, network_model, experiment_no, experiment_name, num_epochs, gender_MTL, train_data, val_data,
+    def __init__(self, SER, network_model, experiment_no, experiment_name, num_epochs, gender_MTL, train_data, val_data,
                  test_data, weight_decay_coefficient, use_gpu, continue_from_epoch=-1):
         """
         Initializes an ExperimentBuilder object. Such an object takes care of running training and evaluation of a deep net
@@ -31,6 +31,7 @@ class ExperimentBuilder(nn.Module):
         super(ExperimentBuilder, self).__init__()
 
         self.gender_MTL=gender_MTL
+        self.SER=SER
 
         self.experiment_name = experiment_name
         self.experiment_no = experiment_no
@@ -136,7 +137,9 @@ class ExperimentBuilder(nn.Module):
 
         #print(out1.shape)
         #print(y.shape)
-        loss = F.cross_entropy(input=out1, target=y)  # compute loss
+        loss=0
+        if self.SER:
+            loss +=F.cross_entropy(input=out1, target=y)  # compute loss
 
         if self.gender_MTL:
             loss+=F.cross_entropy(input=out2, target=z)

@@ -32,6 +32,8 @@ def get_args():
                         default=1000, help='The experiment\'s epoch budget')
     parser.add_argument('--genderMTL', nargs="?", type=bool,
                         default=False, help='Whether training with MTL or not.')
+    parser.add_argument('--SER', nargs="?", type=bool,
+                        default=True, help='Whether training SER or not.')
     parser.add_argument('--num_classes', nargs="?", type=int,
                         default=4, help='The experiment\'s output classes')
     parser.add_argument('--num_layers', nargs="?", type=int,

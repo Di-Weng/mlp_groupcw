@@ -142,4 +142,4 @@ class IEMOCAP(data.Dataset):
 
 if __name__ == '__main__':
 
-    ama = IEMOCAP('mfcc',mode='train')
+    ama = IEMOCAP('mpc',mode='train')

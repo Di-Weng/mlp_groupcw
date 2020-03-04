@@ -46,6 +46,7 @@ if __name__ == '__main__':
 
 
     conv_experiment = ExperimentBuilder(network_model=custom_blstm,
+                                        SER=args.SER,
                                         experiment_name=args.experiment_name,
                                         num_epochs=args.num_epochs,
                                         gender_MTL=args.genderMTL,
