@@ -197,6 +197,20 @@ class ExperimentBuilder(nn.Module):
         torch.save(self.state, f=os.path.join(model_save_dir, "{}_{}".format(model_save_name, str(
             model_idx))))  # save state at prespecified filepath
 
+    def delete_model(self, model_save_dir, model_save_name, model_idx):
+        """
+        Delete the model files other than the best model
+        """
+        best_model_path = os.path.join(model_save_dir, "{}_{}".format(model_save_name, str(
+            model_idx)))
+        file_list = os.listdir(model_save_dir)
+        for f in file_list:
+            f_path = os.path.join(model_save_dir, f)
+
+            if f_path != best_model_path:
+                os.remove(f_path)
+                print('file removed: {}'.format(f_path))
+
     def load_model(self, model_save_dir, model_save_name, model_idx):
         """
         Load the network parameter state and the best val model idx and best val acc to be compared with the future val accuracies, in order to choose the best val model
@@ -265,7 +279,7 @@ class ExperimentBuilder(nn.Module):
 
             # load_statistics(experiment_log_dir=self.experiment_logs, filename='summary.csv') # How to load a csv file if you need to
 
-            out_string = "_".join(
+            out_string = ", ".join(
                 ["{}_{:.4f}".format(key, np.mean(value)) for key, value in current_epoch_losses.items()])
             # create a string to use to report our epoch metrics
             epoch_elapsed_time = time.time() - epoch_start_time  # calculate time taken for epoch
@@ -318,5 +332,8 @@ class ExperimentBuilder(nn.Module):
         save_statistics(experiment_log_dir=self.experiment_logs, filename='test_summary.csv',
                         # save test set metrics on disk in .csv format
                         stats_dict=test_losses, current_epoch=0, continue_from_mode=False)
+        print('Sorting model files')
+        self.delete_model(model_save_dir=self.experiment_saved_models, model_save_name="train_model",
+                          model_idx=self.best_val_model_idx)
 
         return total_losses, test_losses
