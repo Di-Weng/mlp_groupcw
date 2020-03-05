@@ -46,6 +46,8 @@ def get_args():
                         help='A flag indicating whether we will use GPU acceleration or not')
     parser.add_argument('--weight_decay_coefficient', nargs="?", type=float, default=0,
                         help='Weight decay to use for Adam')
+    parser.add_argument('--learning_rate', nargs="?", type=float, default=1e-3,
+                        help='learning rate to use for Adam')
     args = parser.parse_args()
     print(args)
     return args

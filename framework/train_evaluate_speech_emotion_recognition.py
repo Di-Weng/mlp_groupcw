@@ -55,6 +55,7 @@ if __name__ == '__main__':
                                         use_gpu=args.use_gpu,
                                         continue_from_epoch=args.continue_from_epoch,
                                         train_data=train_data_loader, val_data=val_data_loader,
-                                        test_data=test_data_loader)  # build an experiment object
+                                        test_data=test_data_loader,
+                                        lr = args.learning_rate)  # build an experiment object
 
     experiment_metrics, test_metrics = conv_experiment.run_experiment()  # run experiment and return experiment metrics

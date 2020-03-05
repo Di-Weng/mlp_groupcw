@@ -9,11 +9,11 @@ import time
 import sys
 
 from storage_utils import save_statistics
-
+emotion_classes = {"ang": 0, "hap": 1,  "neu": 2, "sad": 3}
 
 class ExperimentBuilder(nn.Module):
     def __init__(self, SER, network_model, experiment_no, experiment_name, num_epochs, gender_MTL, train_data, val_data,
-                 test_data, weight_decay_coefficient, use_gpu, continue_from_epoch=-1):
+                 test_data, weight_decay_coefficient, use_gpu, lr, continue_from_epoch=-1):
         """
         Initializes an ExperimentBuilder object. Such an object takes care of running training and evaluation of a deep net
         on a given dataset. It also takes care of saving per epoch models and automatically inferring the best val model
@@ -32,10 +32,15 @@ class ExperimentBuilder(nn.Module):
 
         self.gender_MTL=gender_MTL
         self.SER=SER
-
+        self.lr = lr
         self.experiment_name = experiment_name
         self.experiment_no = experiment_no
         self.model = network_model
+        self.current_epoch_emo_count = {0: 0, 1: 0, 2: 0, 3: 0}
+        self.current_epoch_correct_count = {0: 0, 1: 0, 2: 0, 3: 0}
+
+        self.eval_current_epoch_emo_count = {0: 0, 1: 0, 2: 0, 3: 0}
+        self.eval_current_epoch_correct_count = {0: 0, 1: 0, 2: 0, 3: 0}
 
         if torch.cuda.device_count() > 1 and use_gpu:
             self.device = torch.cuda.current_device()
@@ -74,11 +79,14 @@ class ExperimentBuilder(nn.Module):
         print('Total number of conv layers', num_conv_layers)
         print('Total number of linear layers', num_linear_layers)
 
+        # static learning rate
         self.optimizer = optim.Adam(self.parameters(), amsgrad=False,
-                                    weight_decay=weight_decay_coefficient)
-        self.learning_rate_scheduler = optim.lr_scheduler.CosineAnnealingLR(self.optimizer,
-                                                                            T_max=num_epochs,
-                                                                            eta_min=0.00002)
+                                    weight_decay=weight_decay_coefficient, lr=self.lr)
+
+        # self.learning_rate_scheduler = optim.lr_scheduler.CosineAnnealingLR(self.optimizer,
+        #                                                                     T_max=num_epochs,
+        #                                                                     eta_min=0.00002)
+
         # Generate the directory names
         self.experiment_folder = os.path.abspath(experiment_name+"_"+experiment_no)
         self.experiment_logs = os.path.abspath(os.path.join(self.experiment_folder, "result_outputs"))
@@ -148,12 +156,20 @@ class ExperimentBuilder(nn.Module):
         loss.backward()  # backpropagate to compute gradients for current iter loss
 
         self.optimizer.step()  # update network parameters
-        self.learning_rate_scheduler.step(epoch=self.current_epoch)
+        # self.learning_rate_scheduler.step(epoch=self.current_epoch)
+
 
         _, predicted1 = torch.max(out1.data, 1)  # get argmax of predictions
         _, predicted2 = torch.max(out2.data, 1)  # get argmax of predictions
         accuracy1 = np.mean(list(predicted1.eq(y.data).cpu()))  # compute accuracy
         accuracy2 = np.mean(list(predicted2.eq(z.data).cpu()))
+        for label_idx, label in enumerate(y.data):
+            label = int(label)
+            self.current_epoch_emo_count[label]+=1
+            if predicted1[label_idx]== label:
+                self.current_epoch_correct_count[label]+=1
+
+        # un_accuracy1 =
         return loss.cpu().data.numpy(), accuracy1, accuracy2
 
     def run_evaluation_iter(self, x, y, z):
@@ -177,6 +193,13 @@ class ExperimentBuilder(nn.Module):
         _, predicted2 = torch.max(out2.data, 1)  # get argmax of predictions
         accuracy1 = np.mean(list(predicted1.eq(y.data).cpu()))  # compute accuracy
         accuracy2 = np.mean(list(predicted2.eq(z.data).cpu()))  # compute accuracy
+
+        for label_idx, label in enumerate(y.data):
+            label = int(label)
+            self.eval_current_epoch_emo_count[label]+=1
+            if predicted1[label_idx]== label:
+                self.eval_current_epoch_correct_count[label]+=1
+
         return loss.cpu().data.numpy(), accuracy1, accuracy2
 
     def save_model(self, model_save_dir, model_save_name, model_idx, best_validation_model_idx,
@@ -229,16 +252,18 @@ class ExperimentBuilder(nn.Module):
         :return: The summary current_epoch_losses from starting epoch to total_epochs.
         """
         total_losses = {"val_Gender_acc":[], "val_SER_acc":[], "train_acc_GENDER": [], "train_acc_SER": [], "train_loss": [],
-                        "val_loss": []}  # initialize a dict to keep the per-epoch metrics
+                        "val_loss": [], "ua_train": [], "ua_eval":[]}  # initialize a dict to keep the per-epoch metrics
         for i, epoch_idx in enumerate(range(self.starting_epoch, self.num_epochs)):
             epoch_start_time = time.time()
             current_epoch_losses = {"train_acc_SER": [], "train_acc_GENDER": [], "train_loss": [],
                                     "val_Gender_acc": [], "val_SER_acc": [], "val_loss": []}
             self.current_epoch = epoch_idx
+            # init un_accuracy
+            self.current_epoch_emo_count = {0: 0, 1: 0, 2: 0, 3: 0}
+            self.current_epoch_correct_count = {0: 0, 1: 0, 2: 0, 3: 0}
 
             with tqdm.tqdm(total=len(self.train_data), ascii=True) as pbar_train:  # create a progress bar for training
                 try:
-
                     for idx, (x, y, z) in enumerate(self.train_data):  # get data batches
                         loss, accuracy1, accuracy2 = self.run_train_iter(x=x, y=y, z=z)  # take a training iter step
                         current_epoch_losses["train_loss"].append(loss)  # add current iter loss to the train loss list
@@ -250,6 +275,10 @@ class ExperimentBuilder(nn.Module):
                     pbar_train.close()
                     raise
                 pbar_train.close()
+            # get un_accuracy result
+
+            self.eval_current_epoch_emo_count = {0: 0, 1: 0, 2: 0, 3: 0}
+            self.eval_current_epoch_correct_count = {0: 0, 1: 0, 2: 0, 3: 0}
 
             with tqdm.tqdm(total=len(self.val_data), ascii=True) as pbar_val:  # create a progress bar for validation
                 try:
@@ -272,6 +301,17 @@ class ExperimentBuilder(nn.Module):
             for key, value in current_epoch_losses.items():
                 total_losses[key].append(np.mean(
                     value))  # get mean of all metrics of current epoch metrics dict, to get them ready for storage and output on the terminal.
+
+            ua_train=0
+            ua_val=0
+            for key, value in self.current_epoch_correct_count.items():
+                ua_train+=value/self.current_epoch_emo_count[key]/4
+            total_losses["ua_train"].append(ua_train)
+            for key, value in self.eval_current_epoch_correct_count.items():
+                ua_val+=value/self.eval_current_epoch_emo_count[key]/4
+            total_losses["ua_eval"].append(ua_train)
+
+
 
             save_statistics(experiment_log_dir=self.experiment_logs, filename='summary.csv',
                             stats_dict=total_losses, current_epoch=i,
@@ -312,6 +352,9 @@ class ExperimentBuilder(nn.Module):
                         model_save_name="train_model")
         current_epoch_losses = {"test_Gender_acc": [],"test_SER_acc": [], "test_loss": []}  # initialize a statistics dict
 
+        self.eval_current_epoch_emo_count = {0: 0, 1: 0, 2: 0, 3: 0}
+        self.eval_current_epoch_correct_count = {0: 0, 1: 0, 2: 0, 3: 0}
+
         with tqdm.tqdm(total=len(self.test_data), ascii=True) as pbar_test:  # ini a progress bar
             try:
                 for x, y, z in self.test_data:  # sample batch
@@ -329,9 +372,14 @@ class ExperimentBuilder(nn.Module):
             pbar_test.close()
         test_losses = {key: [np.mean(value)] for key, value in
                        current_epoch_losses.items()}  # save test set metrics in dict format
+        ua_test = 0
+        for key, value in self.eval_current_epoch_correct_count.items():
+            ua_test += value / self.eval_current_epoch_emo_count[key] / 4
+        test_losses["ua_test"] = [ua_test]
         save_statistics(experiment_log_dir=self.experiment_logs, filename='test_summary.csv',
                         # save test set metrics on disk in .csv format
                         stats_dict=test_losses, current_epoch=0, continue_from_mode=False)
+
         print('Sorting model files')
         self.delete_model(model_save_dir=self.experiment_saved_models, model_save_name="train_model",
                           model_idx=self.best_val_model_idx)
