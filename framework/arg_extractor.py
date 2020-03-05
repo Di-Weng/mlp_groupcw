@@ -30,9 +30,9 @@ def get_args():
                         default=64, help='Hidden dimensionality for experiment')
     parser.add_argument('--num_epochs', nargs="?", type=int,
                         default=1000, help='The experiment\'s epoch budget')
-    parser.add_argument('--genderMTL', nargs="?", type=bool,
+    parser.add_argument('--genderMTL', nargs="?", type=str2bool,
                         default=False, help='Whether training with MTL or not.')
-    parser.add_argument('--SER', nargs="?", type=bool,
+    parser.add_argument('--SER', nargs="?", type=str2bool,
                         default=True, help='Whether training SER or not.')
     parser.add_argument('--num_classes', nargs="?", type=int,
                         default=4, help='The experiment\'s output classes')
