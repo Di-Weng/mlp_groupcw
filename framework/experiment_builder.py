@@ -230,9 +230,13 @@ class ExperimentBuilder(nn.Module):
         for f in file_list:
             f_path = os.path.join(model_save_dir, f)
 
-            if f_path != best_model_path:
-                os.remove(f_path)
-                print('file removed: {}'.format(f_path))
+            # remove all
+            os.remove(f_path)
+            print('remove all models')
+            #
+            # if f_path != best_model_path:
+            #     os.remove(f_path)
+            #     print('file removed: {}'.format(f_path))
 
     def load_model(self, model_save_dir, model_save_name, model_idx):
         """
