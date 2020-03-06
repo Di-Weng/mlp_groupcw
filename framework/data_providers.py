@@ -49,7 +49,7 @@ class IEMOCAP(data.Dataset):
         prenet_config = None
 
         print("here")
-        if experiment_name=="mpc":
+        if experiment_name=="mpc" or experiment_name=="mpc_all_layers" :
             model_path = 'MPC/mockingjay-500000.ckpt'
             mockingjay = get_mockingjay_model(from_path=model_path)
         for emotion_name in tqdm(os.listdir(self.mfcc_datafolder)):
@@ -100,6 +100,32 @@ class IEMOCAP(data.Dataset):
                     #print(feature.shape)
                     feature=feature.to("cpu")
                     feature=feature.detach()
+
+                if experiment_name == "mpc_all_layers":
+                    feature = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=160, n_fft=int(sr / 40),
+                                                             hop_length=int(sr / 100))
+                    feature = np.expand_dims(feature, axis=0)
+
+                    feature = np.transpose(feature, (0, 2, 1))
+                    # print(feature.shape)
+                    feature = torch.Tensor(feature)
+                    feature = feature.to('cpu')
+
+                    length = [feature.shape[1]]
+                    length = torch.Tensor(length)
+                    length = length.to('cpu')
+
+                    # _, mel = pretrained_apc.forward(mel, length)
+                    # reps.shape: (batch_size, seq_len, hidden_size)
+                    feature = mockingjay.forward(spec=feature, all_layers=True, tile=True)
+                    # mel=mel[-1,-1,:,:]
+                    feature = feature[-1, :, :, :]
+
+                    feature = feature.transpose(1, 2)
+
+                    print(feature.shape)
+                    feature = feature.to("cpu")
+                    feature = feature.detach()
                 #print(emotion_name)
    
                 emotion = self.emotion_classes[emotion_name]
@@ -142,4 +168,4 @@ class IEMOCAP(data.Dataset):
 
 if __name__ == '__main__':
 
-    ama = IEMOCAP('mpc',mode='train')
+    ama = IEMOCAP('mpc_all_layers',mode='train')
