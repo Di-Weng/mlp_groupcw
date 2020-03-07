@@ -150,6 +150,7 @@ class ExperimentBuilder(nn.Module):
             loss +=F.cross_entropy(input=out1, target=y)  # compute loss
 
         if self.gender_MTL:
+            #print("training gender..")
             loss+=F.cross_entropy(input=out2, target=z)
 
         self.optimizer.zero_grad()  # set all weight grads from previous training iters to 0
@@ -188,6 +189,7 @@ class ExperimentBuilder(nn.Module):
         loss = F.cross_entropy(input=out1, target=y)  # compute loss
 
         if self.gender_MTL:
+            print("training gender...")
             loss+= F.cross_entropy(input=out2, target=z)
         _, predicted1 = torch.max(out1.data, 1)  # get argmax of predictions
         _, predicted2 = torch.max(out2.data, 1)  # get argmax of predictions
