@@ -46,6 +46,7 @@ if __name__ == '__main__':
     #
     custom_blstm = LSTMBlock(
         input_dim=args.input_dim,
+        dropout=args.drop_out,
         batch_size=args.batch_size,
         hidden_dim=args.hidden_dim,
         output_dim=args.num_classes,

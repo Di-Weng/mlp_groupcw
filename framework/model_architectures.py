@@ -4,12 +4,13 @@ import torch.nn as nn
 
 class LSTMBlock(nn.Module):
 
-    def __init__(self, input_dim, batch_size, hidden_dim, output_dim=4, num_layers=1):
+    def __init__(self, dropout, input_dim, batch_size, hidden_dim, output_dim=4, num_layers=1):
         super(LSTMBlock, self).__init__()
         self.input_dim = input_dim
         self.batch_size = batch_size
         self.input_shape = (self.batch_size, 3000, self.input_dim)
         self.hidden_dim = hidden_dim
+        self.dropout=dropout
         self.num_layers = num_layers
         self.output_dim = output_dim
         self.build_module()
@@ -32,7 +33,7 @@ class LSTMBlock(nn.Module):
         out = torch.zeros(self.input_shape)
 
         self.layer_dict['blstm'] = nn.LSTM(input_size=self.input_dim, hidden_size=self.hidden_dim,
-                                           num_layers=self.num_layers, batch_first=True, dropout=0.5,
+                                           num_layers=self.num_layers, batch_first=True, dropout=self.dropout,
                                            bidirectional=True)
 
         out,_ = self.layer_dict['blstm'].forward(out)

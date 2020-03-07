@@ -36,6 +36,8 @@ def get_args():
                         default=True, help='Whether training SER or not.')
     parser.add_argument('--num_classes', nargs="?", type=int,
                         default=4, help='The experiment\'s output classes')
+    parser.add_argument('--drop_out', nargs="?", type=float,
+                        default=0, help='The experiment\'s output classes')
     parser.add_argument('--num_layers', nargs="?", type=int,
                         default=1, help='Number of BLSTM layers')
     parser.add_argument('--experiment_name', nargs="?", type=str, default="exp_1",
@@ -48,6 +50,10 @@ def get_args():
                         help='Weight decay to use for Adam')
     parser.add_argument('--learning_rate', nargs="?", type=float, default=1e-3,
                         help='learning rate to use for Adam')
+    parser.add_argument('--layer_no', nargs="?", type=int, default=0,
+                        help='layer number for mpc feature-based')
+    parser.add_argument('--mpc', nargs="?", type=str2bool, default=False,
+                        help='A flag indicating whether we will use GPU acceleration or not')
     args = parser.parse_args()
     print(args)
     return args
