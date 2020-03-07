@@ -123,7 +123,6 @@ class IEMOCAP(data.Dataset):
 
                     feature = feature.transpose(1, 2)
 
-                    print(feature.shape)
                     feature = feature.to("cpu")
                     feature = feature.detach()
                 #print(emotion_name)
