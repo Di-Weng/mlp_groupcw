@@ -316,4 +316,4 @@ class IEMOCAP(data.Dataset):
 
 if __name__ == '__main__':
     for i in np.arange(12):
-        ama = IEMOCAP(experiment_name='mpc',layer_no=11, mode='train')
+        ama = IEMOCAP(experiment_name='mpc',layer_no=i, mode='train')
