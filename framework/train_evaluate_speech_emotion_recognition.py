@@ -10,6 +10,7 @@ from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
 
 def pad_collate(batch):
   (xx, yy, zz) = zip(*batch)
+  #print(xx[0].shape)
   xx_trans = [torch.Tensor(x.transpose(1,0)) for x in xx]
 
   xx_pad = pad_sequence(xx_trans, batch_first=True)
@@ -27,10 +28,16 @@ if __name__ == '__main__':
     rng = np.random.RandomState(seed=args.seed)  # set the seeds for the experiment
     torch.manual_seed(seed=args.seed)  # sets pytorch's seed
 
-    train_data = IEMOCAP(experiment_name=args.experiment_name, mode='train')#
+
+    if False and args.mpc:
+        experiment_name="mspc"
+    elif True:
+        experiment_name = args.experiment_name
+
+    train_data = IEMOCAP(experiment_name=experiment_name, layer_no=args.layer_no, mode='train')
     #print(args.experiment_name)
-    val_data = IEMOCAP(experiment_name=args.experiment_name, mode='val')
-    test_data = IEMOCAP(experiment_name=args.experiment_name, mode='test')
+    val_data = IEMOCAP(experiment_name=experiment_name, layer_no=args.layer_no, mode='val')
+    test_data = IEMOCAP(experiment_name=experiment_name, layer_no=args.layer_no, mode='test')
 
     #print(train_data[0])
     train_data_loader = DataLoader(train_data, batch_size=args.batch_size, collate_fn=pad_collate, shuffle=True,  num_workers=0)
@@ -46,6 +53,7 @@ if __name__ == '__main__':
 
 
     conv_experiment = ExperimentBuilder(network_model=custom_blstm,
+                                        layer_no=args.layer_no,
                                         SER=args.SER,
                                         experiment_name=args.experiment_name,
                                         num_epochs=args.num_epochs,

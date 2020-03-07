@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+from mockingjay.nn_mockingjay import MOCKINGJAY
+from runner_mockingjay import get_mockingjay_model
 import tqdm
 import os
 import numpy as np
@@ -12,7 +14,7 @@ from storage_utils import save_statistics
 emotion_classes = {"ang": 0, "hap": 1,  "neu": 2, "sad": 3}
 
 class ExperimentBuilder(nn.Module):
-    def __init__(self, SER, network_model, experiment_no, experiment_name, num_epochs, gender_MTL, train_data, val_data,
+    def __init__(self, SER, layer_no, network_model, experiment_no, experiment_name, num_epochs, gender_MTL, train_data, val_data,
                  test_data, weight_decay_coefficient, use_gpu, lr, continue_from_epoch=-1):
         """
         Initializes an ExperimentBuilder object. Such an object takes care of running training and evaluation of a deep net
@@ -30,6 +32,8 @@ class ExperimentBuilder(nn.Module):
         """
         super(ExperimentBuilder, self).__init__()
 
+
+        self.layer_no=layer_no
         self.gender_MTL=gender_MTL
         self.SER=SER
         self.lr = lr
@@ -56,7 +60,16 @@ class ExperimentBuilder(nn.Module):
             self.device = torch.device('cpu')  # sets the device to be CPU
             print(self.device)
 
-        print('here')
+        options_feature_based = {
+            'ckpt_file': 'MPC/mockingjay-500000.ckpt',
+            'load_pretrain': 'True',
+            'no_grad': 'True',
+            'dropout': 'default'
+        }
+
+        if self.experiment_name=="mpc":
+            #self.mockingjay=MOCKINGJAY(options=options_feature_based, inp_dim=160)
+            self.mockingjay=get_mockingjay_model(from_path='MPC/mockingjay-500000.ckpt')
 
         self.model.reset_parameters()  # re-initialize network parameters
         self.train_data = train_data
@@ -138,9 +151,17 @@ class ExperimentBuilder(nn.Module):
         :return: the loss and accuracy for this batch
         """
         self.train()  # sets model to training mode (in case batch normalization or other methods have different procedures for training and evaluation)
+
         x, y, z = x.float().to(device=self.device), y.long().to(
             device=self.device), z.long().to(
             device=self.device)  # send data to device as torch tensors
+
+        if False and self.experiment_name=="mpc":
+            #print(x.shape)
+            x=x.cpu()
+            x=self.mockingjay.forward(spec=x, all_layers=True, tile=True)
+            print(x.shape)
+            x=x[:,self.layer_no,:,:]
         out1, out2 = self.model.forward(x)  # forward the data in the model
 
         #print(out1.shape)
@@ -181,9 +202,17 @@ class ExperimentBuilder(nn.Module):
         :return: the loss and accuracy for this batch
         """
         self.eval()  # sets the system to validation mode
+        if False and self.experiment_name=="mpc":
+            x=x.cpu()
+            #print(x.shape)
+            x=self.mockingjay.forward(spec=x, all_layers=True, tile=True)
+            print(x.shape)
+            x=x[:,self.layer_no,:,:]
+
         x, y, z = x.float().to(device=self.device), y.long().to(
             device=self.device), z.long().to(
             device=self.device)  # convert data to pytorch tensors and send to the computation device
+        #print(x.shape)
         out1, out2 = self.model.forward(x)  # forward the data in the model
 
         loss = F.cross_entropy(input=out1, target=y)  # compute loss
