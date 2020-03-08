@@ -50,20 +50,6 @@ class ExperimentBuilder(nn.Module):
 
         self.num_epochs = num_epochs
 
-        if torch.cuda.device_count() > 1 and use_gpu:
-            self.device = torch.cuda.current_device()
-            self.model.to(self.device)
-            self.model = nn.DataParallel(module=self.model)
-            print('Use Multi GPU', self.device)
-        elif torch.cuda.device_count() == 1 and use_gpu:
-            self.device =  torch.cuda.current_device()
-            self.model.to(self.device)  # sends the model from the cpu to the gpu
-            print('Use GPU', self.device)
-        else:
-            print("use CPU")
-            self.device = torch.device('cpu')  # sets the device to be CPU
-            print(self.device)
-
         options_feature_based = {
             'ckpt_file': 'MPC/mockingjay-500000.ckpt',
             'load_pretrain': 'True',
@@ -71,9 +57,9 @@ class ExperimentBuilder(nn.Module):
             'dropout': 'default'
         }
 
-        if self.experiment_name=="mpc":
-            #self.mockingjay=MOCKINGJAY(options=options_feature_based, inp_dim=160)
-            self.mockingjay=get_mockingjay_model(from_path='MPC/mockingjay-500000.ckpt')
+        if self.experiment_name == "mpc":
+            # self.mockingjay=MOCKINGJAY(options=options_feature_based, inp_dim=160)
+            self.mockingjay = get_mockingjay_model(from_path='MPC/mockingjay-500000.ckpt')
         elif self.experiment_name.startswith('mpc_finetune'):
             options = {
                 # change path; needs small model
@@ -83,6 +69,24 @@ class ExperimentBuilder(nn.Module):
                 'dropout': 'default'
             }
             self.mockingjay_model = MOCKINGJAY(options=options, inp_dim=160)
+
+        if torch.cuda.device_count() > 1 and use_gpu:
+            self.device = torch.cuda.current_device()
+            self.model.to(self.device)
+            self.model = nn.DataParallel(module=self.model)
+            print('Use Multi GPU', self.device)
+        elif torch.cuda.device_count() == 1 and use_gpu:
+            self.device =  torch.cuda.current_device()
+            self.model.to(self.device)  # sends the model from the cpu to the gpu
+            self.mockingjay_model.to(self.device)  # sends the model from the cpu to the gpu
+
+            print('Use GPU', self.device)
+        else:
+            print("use CPU")
+            self.device = torch.device('cpu')  # sets the device to be CPU
+            print(self.device)
+
+
 
 
 
