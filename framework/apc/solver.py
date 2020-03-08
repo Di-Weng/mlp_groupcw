@@ -23,7 +23,7 @@ from torch.utils import data
 from torch.autograd import Variable
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
-from APC.model import APCModel
+from apc.model import APCModel
 from utility.audio import plot_spectrogram_to_numpy
 
 
@@ -105,8 +105,8 @@ class Solver():
         state = torch.load(path, map_location='cpu')
         try:
             self.model.load_state_dict(state)
-            self.verbose('[APC] - Loaded')
-        except: self.verbose('[APC - X]')
+            self.verbose('[apc] - Loaded')
+        except: self.verbose('[apc - X]')
 
 
     def process_data(self, batch_x):
