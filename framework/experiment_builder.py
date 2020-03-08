@@ -48,6 +48,8 @@ class ExperimentBuilder(nn.Module):
         self.eval_current_epoch_emo_count = {0: 0, 1: 0, 2: 0, 3: 0}
         self.eval_current_epoch_correct_count = {0: 0, 1: 0, 2: 0, 3: 0}
 
+        self.num_epochs = num_epochs
+
         if torch.cuda.device_count() > 1 and use_gpu:
             self.device = torch.cuda.current_device()
             self.model.to(self.device)
@@ -141,7 +143,6 @@ class ExperimentBuilder(nn.Module):
         if not os.path.exists(self.experiment_saved_models):
             os.mkdir(self.experiment_saved_models)  # create the experiment saved models directory
 
-        self.num_epochs = num_epochs
         self.criterion = nn.CrossEntropyLoss().to(self.device)  # send the loss computation to the GPU
 
         if continue_from_epoch == -2:  # if continue from epoch is -2 then continue from latest saved model
