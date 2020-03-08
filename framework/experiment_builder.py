@@ -343,7 +343,7 @@ class ExperimentBuilder(nn.Module):
                 try:
                     for idx, (x, y, z) in enumerate(self.train_data):  # get data batches
                         loss, accuracy1, accuracy2 = self.run_train_iter(x=x, y=y, z=z)  # take a training iter step
-                        current_epoch_losses["train_loss"].append(loss)  # add current iter loss to the train loss list
+                        current_epoch_losses["train_loss"].append(loss.detach().item())  # add current iter loss to the train loss list
                         current_epoch_losses["train_acc_SER"].append(accuracy1)  # add current iter acc to the train acc list
                         current_epoch_losses["train_acc_GENDER"].append(accuracy2)
                         pbar_train.update(1)
@@ -361,7 +361,7 @@ class ExperimentBuilder(nn.Module):
                 try:
                     for x, y, z in self.val_data:  # get data batches
                         loss, accuracy1, accuracy2 = self.run_evaluation_iter(x=x, y=y, z=z)  # run a validation iter
-                        current_epoch_losses["val_loss"].append(loss)  # add current iter loss to val loss list.
+                        current_epoch_losses["val_loss"].append(loss.detach().item())  # add current iter loss to val loss list.
                         current_epoch_losses["val_SER_acc"].append(accuracy1)  # add current iter acc to val acc lst.
                         current_epoch_losses["val_Gender_acc"].append(accuracy2)  # add current iter acc to val acc lst.
                         pbar_val.update(1)  # add 1 step to the progress bar
@@ -446,7 +446,7 @@ class ExperimentBuilder(nn.Module):
                 for x, y, z in self.test_data:  # sample batch
                     loss, accuracy1, accuracy2 = self.run_evaluation_iter(x=x,
                                                               y=y, z=z)  # compute loss and accuracy by running an evaluation step
-                    current_epoch_losses["test_loss"].append(loss)  # save test loss
+                    current_epoch_losses["test_loss"].append(loss.detach().item())  # save test loss
                     current_epoch_losses["test_SER_acc"].append(accuracy1)  # save test accuracy
                     current_epoch_losses["test_Gender_acc"].append(accuracy2)  # save test accuracy
                     pbar_test.update(1)  # update progress bar status
