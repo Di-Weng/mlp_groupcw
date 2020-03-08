@@ -76,8 +76,8 @@ class ExperimentBuilder(nn.Module):
             options = {
                 # change path; needs small model
                 'ckpt_file': 'MPC/mpcbase/mockingjay-500000.ckpt',
-                'load_pretrain': True,
-                'no_grad': False,
+                'load_pretrain': 'True',
+                'no_grad': 'False',
                 'dropout': 'default'
             }
             self.mockingjay_model = MOCKINGJAY(options=options, inp_dim=160)
