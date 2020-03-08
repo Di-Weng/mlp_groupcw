@@ -75,7 +75,7 @@ class ExperimentBuilder(nn.Module):
         elif self.experiment_name.startswith('mpc_finetune'):
             options = {
                 # change path; needs small model
-                'ckpt_file': '',
+                'ckpt_file': 'MPC/mpcbase/mockingjay-500000.ckpt',
                 'load_pretrain': True,
                 'no_grad': False,
                 'dropout': 'default'
