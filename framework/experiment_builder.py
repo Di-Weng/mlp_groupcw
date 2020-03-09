@@ -79,7 +79,6 @@ class ExperimentBuilder(nn.Module):
         elif torch.cuda.device_count() == 1 and use_gpu:
             self.device =  torch.cuda.current_device()
             self.model.to(self.device)  # sends the model from the cpu to the gpu
-            self.mockingjay_model.to(self.device)  # sends the model from the cpu to the gpu
 
             print('Use GPU', self.device)
         else:
