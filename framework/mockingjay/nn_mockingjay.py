@@ -240,5 +240,6 @@ class MOCKINGJAY(nn.Module):
                 x = self._forward(x)
         else:
             x = self._forward(x)
+            torch.cuda.empty_cache()
         return x
 
