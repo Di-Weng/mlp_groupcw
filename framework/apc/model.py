@@ -74,13 +74,13 @@ class Postnet(nn.Module):
 
 
 class APCModel(nn.Module):
-    """This class defines Autoregressive Predictive Coding (APC), a model that
+    """This class defines Autoregressive Predictive Coding (apc), a model that
     learns to extract general speech features from unlabeled speech data. These
     features are shown to contain rich speaker and phone information, and are
     useful for a wide range of downstream tasks such as speaker verification
     and phone classification.
 
-    An APC model consists of a Prenet (optional), a multi-layer GRU network,
+    An apc model consists of a Prenet (optional), a multi-layer GRU network,
     and a Postnet. For each time step during training, the Prenet transforms
     the input frame into a latent representation, which is then consumed by
     the GRU network for generating internal representations across the layers.
@@ -89,7 +89,7 @@ class APCModel(nn.Module):
 
     After training, to extract features from the data of your interest, which
     do not have to be i.i.d. with the training data, simply feed-forward the
-    the data through the APC model, and take the the internal representations
+    the data through the apc model, and take the the internal representations
     (i.e., the GRU hidden states) as the extracted features and use them in
     your tasks.
     """

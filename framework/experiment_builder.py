@@ -8,14 +8,16 @@ import tqdm
 import os
 import numpy as np
 import time
+from downstream.solver import get_mockingjay_optimizer
 import sys
+from apex import amp
 
 from storage_utils import save_statistics
 emotion_classes = {"ang": 0, "hap": 1,  "neu": 2, "sad": 3}
 
 class ExperimentBuilder(nn.Module):
     def __init__(self, SER, layer_no, network_model, experiment_no, experiment_name, num_epochs, gender_MTL, train_data, val_data,
-                 test_data, weight_decay_coefficient, use_gpu, lr, continue_from_epoch=-1):
+                 test_data, weight_decay_coefficient, use_gpu, lr, batch_size, continue_from_epoch=-1):
         """
         Initializes an ExperimentBuilder object. Such an object takes care of running training and evaluation of a deep net
         on a given dataset. It also takes care of saving per epoch models and automatically inferring the best val model
@@ -37,6 +39,7 @@ class ExperimentBuilder(nn.Module):
         self.gender_MTL=gender_MTL
         self.SER=SER
         self.lr = lr
+        self.batch_size = batch_size
         self.experiment_name = experiment_name
         self.experiment_no = experiment_no
         self.model = network_model
@@ -46,19 +49,7 @@ class ExperimentBuilder(nn.Module):
         self.eval_current_epoch_emo_count = {0: 0, 1: 0, 2: 0, 3: 0}
         self.eval_current_epoch_correct_count = {0: 0, 1: 0, 2: 0, 3: 0}
 
-        if torch.cuda.device_count() > 1 and use_gpu:
-            self.device = torch.cuda.current_device()
-            self.model.to(self.device)
-            self.model = nn.DataParallel(module=self.model)
-            print('Use Multi GPU', self.device)
-        elif torch.cuda.device_count() == 1 and use_gpu:
-            self.device =  torch.cuda.current_device()
-            self.model.to(self.device)  # sends the model from the cpu to the gpu
-            print('Use GPU', self.device)
-        else:
-            print("use CPU")
-            self.device = torch.device('cpu')  # sets the device to be CPU
-            print(self.device)
+        self.num_epochs = num_epochs
 
         options_feature_based = {
             'ckpt_file': 'MPC/mockingjay-500000.ckpt',
@@ -67,9 +58,39 @@ class ExperimentBuilder(nn.Module):
             'dropout': 'default'
         }
 
-        if self.experiment_name=="mpc":
-            #self.mockingjay=MOCKINGJAY(options=options_feature_based, inp_dim=160)
-            self.mockingjay=get_mockingjay_model(from_path='MPC/mockingjay-500000.ckpt')
+        if self.experiment_name == "mpc":
+            # self.mockingjay=MOCKINGJAY(options=options_feature_based, inp_dim=160)
+            self.mockingjay = get_mockingjay_model(from_path='MPC/mockingjay-500000.ckpt')
+        elif self.experiment_name.startswith('mpc_finetune'):
+            options = {
+                # change path; needs small model
+                'ckpt_file': 'MPC/mpcbase/mockingjay-500000.ckpt',
+                'load_pretrain': 'True',
+                'no_grad': 'False',
+                'dropout': 'default'
+            }
+            self.mockingjay_model = MOCKINGJAY(options=options, inp_dim=160)
+
+        if torch.cuda.device_count() > 1 and use_gpu:
+            self.device = torch.cuda.current_device()
+            self.model.to(self.device)
+            self.model = nn.DataParallel(module=self.model)
+            print('Use Multi GPU', self.device)
+        elif torch.cuda.device_count() == 1 and use_gpu:
+            self.device =  torch.cuda.current_device()
+            self.model.to(self.device)  # sends the model from the cpu to the gpu
+
+            print('Use GPU', self.device)
+        else:
+            print("use CPU")
+            self.device = torch.device('cpu')  # sets the device to be CPU
+            print(self.device)
+
+
+
+
+
+
 
         self.model.reset_parameters()  # re-initialize network parameters
         self.train_data = train_data
@@ -93,8 +114,22 @@ class ExperimentBuilder(nn.Module):
         print('Total number of linear layers', num_linear_layers)
 
         # static learning rate
-        self.optimizer = optim.Adam(self.parameters(), amsgrad=False,
-                                    weight_decay=weight_decay_coefficient, lr=self.lr)
+        if self.experiment_name.startswith('mpc_finetune'):
+            # self.params: only for finetune
+            self.params = list(self.mockingjay_model.named_parameters()) + list(self.model.named_parameters())
+            self.optimizer = get_mockingjay_optimizer(params=self.params,
+                                                 lr=self.lr,
+                                                 warmup_proportion=0.7,
+                                                 training_steps= int(3872 * self.num_epochs / self.batch_size) + 1)
+
+            # apex 混合精度
+            [self.model, self.mockingjay_model], optimizer = amp.initialize([self.model, self.mockingjay_model],
+                                                                            self.optimizer, opt_level="O2")
+
+
+        else:
+            self.optimizer = optim.Adam(self.parameters(), amsgrad=False,
+                                        weight_decay=weight_decay_coefficient, lr=self.lr)
 
         # self.learning_rate_scheduler = optim.lr_scheduler.CosineAnnealingLR(self.optimizer,
         #                                                                     T_max=num_epochs,
@@ -116,7 +151,6 @@ class ExperimentBuilder(nn.Module):
         if not os.path.exists(self.experiment_saved_models):
             os.mkdir(self.experiment_saved_models)  # create the experiment saved models directory
 
-        self.num_epochs = num_epochs
         self.criterion = nn.CrossEntropyLoss().to(self.device)  # send the loss computation to the GPU
 
         if continue_from_epoch == -2:  # if continue from epoch is -2 then continue from latest saved model
@@ -162,6 +196,10 @@ class ExperimentBuilder(nn.Module):
             x=self.mockingjay.forward(spec=x, all_layers=True, tile=True)
             print(x.shape)
             x=x[:,self.layer_no,:,:]
+        elif self.experiment_name.startswith('mpc_finetune'):
+            # mockingjay_model forward
+            x = self.mockingjay_model(x.transpose(0, 1)).transpose(0, 1)
+
         out1, out2 = self.model.forward(x)  # forward the data in the model
 
         #print(out1.shape)
@@ -174,11 +212,15 @@ class ExperimentBuilder(nn.Module):
             #print("training gender..")
             loss+=F.cross_entropy(input=out2, target=z)
 
-        self.optimizer.zero_grad()  # set all weight grads from previous training iters to 0
-        loss.backward()  # backpropagate to compute gradients for current iter loss
+        if(self.experiment_name.startswith('mpc_finetune')):
+            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            self.optimizer.zero_grad()  # set all weight grads from previous training iters to 0
+            loss.backward()  # backpropagate to compute gradients for current iter loss
 
-        self.optimizer.step()  # update network parameters
-        # self.learning_rate_scheduler.step(epoch=self.current_epoch)
+            self.optimizer.step()  # update network parameters
+            # self.learning_rate_scheduler.step(epoch=self.current_epoch)
 
 
         _, predicted1 = torch.max(out1.data, 1)  # get argmax of predictions
@@ -192,7 +234,7 @@ class ExperimentBuilder(nn.Module):
                 self.current_epoch_correct_count[label]+=1
 
         # un_accuracy1 =
-        return loss.cpu().data.numpy(), accuracy1, accuracy2
+        return loss.cpu().detach().numpy(), accuracy1, accuracy2
 
     def run_evaluation_iter(self, x, y, z):
         """
@@ -202,16 +244,22 @@ class ExperimentBuilder(nn.Module):
         :return: the loss and accuracy for this batch
         """
         self.eval()  # sets the system to validation mode
+
+        x, y, z = x.float().to(device=self.device), y.long().to(
+            device=self.device), z.long().to(
+            device=self.device)  # convert data to pytorch tensors and send to the computation device
+
         if False and self.experiment_name=="mpc":
             x=x.cpu()
             #print(x.shape)
             x=self.mockingjay.forward(spec=x, all_layers=True, tile=True)
             print(x.shape)
             x=x[:,self.layer_no,:,:]
+        elif self.experiment_name.startswith('mpc_finetune'):
+            # mockingjay_model forward
+            x = self.mockingjay_model(x.transpose(0, 1)).transpose(0, 1)
 
-        x, y, z = x.float().to(device=self.device), y.long().to(
-            device=self.device), z.long().to(
-            device=self.device)  # convert data to pytorch tensors and send to the computation device
+
         #print(x.shape)
         out1, out2 = self.model.forward(x)  # forward the data in the model
 
@@ -231,7 +279,7 @@ class ExperimentBuilder(nn.Module):
             if predicted1[label_idx]== label:
                 self.eval_current_epoch_correct_count[label]+=1
 
-        return loss.cpu().data.numpy(), accuracy1, accuracy2
+        return loss.cpu().detach().numpy(), accuracy1, accuracy2
 
     def save_model(self, model_save_dir, model_save_name, model_idx, best_validation_model_idx,
                    best_validation_model_acc):
@@ -248,8 +296,10 @@ class ExperimentBuilder(nn.Module):
         self.state['network'] = self.state_dict()  # save network parameter and other variables.
         self.state['best_val_model_idx'] = best_validation_model_idx  # save current best val idx
         self.state['best_val_model_acc'] = best_validation_model_acc  # save current best val acc
+
         torch.save(self.state, f=os.path.join(model_save_dir, "{}_{}".format(model_save_name, str(
             model_idx))))  # save state at prespecified filepath
+
 
     def delete_model(self, model_save_dir, model_save_name, model_idx):
         """
@@ -306,6 +356,7 @@ class ExperimentBuilder(nn.Module):
                         current_epoch_losses["train_acc_GENDER"].append(accuracy2)
                         pbar_train.update(1)
                         pbar_train.set_description("loss: {:.4f}, accuracy_SER: {:.4f}, accuracy_Gender: {:.4f}".format(loss, accuracy1, accuracy2))
+                        torch.cuda.empty_cache()
                 except KeyboardInterrupt:
                     pbar_train.close()
                     raise
@@ -324,6 +375,7 @@ class ExperimentBuilder(nn.Module):
                         current_epoch_losses["val_Gender_acc"].append(accuracy2)  # add current iter acc to val acc lst.
                         pbar_val.update(1)  # add 1 step to the progress bar
                         pbar_val.set_description("loss: {:.4f}, accuracy_SER: {:.4f}, accuracy_Gender: {:.4f}".format(loss, accuracy1, accuracy2))
+                        torch.cuda.empty_cache()
                 except KeyboardInterrupt:
                     pbar_val.close()
                     raise
@@ -361,11 +413,20 @@ class ExperimentBuilder(nn.Module):
             epoch_elapsed_time = "{:.4f}".format(epoch_elapsed_time)
             print("Epoch {}:".format(epoch_idx), out_string, "epoch time", epoch_elapsed_time, "seconds")
             self.state['model_epoch'] = epoch_idx
-            self.save_model(model_save_dir=self.experiment_saved_models,
-                            # save model and best val idx and best val acc, using the model dir, model name and model idx
-                            model_save_name="train_model", model_idx=epoch_idx,
-                            best_validation_model_idx=self.best_val_model_idx,
-                            best_validation_model_acc=self.best_val_model_acc)
+            if(self.best_val_model_idx == epoch_idx):
+                # replace best model
+
+                #remove all model files, THEN save new best one.
+                for model_filename in os.listdir(self.experiment_saved_models):
+                    current_model = os.path.join(self.experiment_saved_models, model_filename)
+                    os.remove(current_model)
+                self.save_model(model_save_dir=self.experiment_saved_models,
+                                # save model and best val idx and best val acc, using the model dir, model name and model idx
+                                model_save_name="train_model", model_idx=epoch_idx,
+                                best_validation_model_idx=self.best_val_model_idx,
+                                best_validation_model_acc=self.best_val_model_acc)
+
+            # save(update) latest model every epoch
             self.save_model(model_save_dir=self.experiment_saved_models,
                             # save model and best val idx and best val acc, using the model dir, model name and model idx
                             model_save_name="train_model", model_idx='latest',
@@ -373,9 +434,9 @@ class ExperimentBuilder(nn.Module):
                             best_validation_model_acc=self.best_val_model_acc)
 
             # early stopping
-            criteria = int(self.num_epochs * 0.1)
-            window_valloss = total_losses['val_loss'][-(criteria+1):]
-            sorted_window_valloss = sorted(window_valloss,reverse = False)
+            # criteria = int(self.num_epochs * 0.1)
+            # window_valloss = total_losses['val_loss'][-(criteria+1):]
+            # sorted_window_valloss = sorted(window_valloss,reverse = False)
             #if (len(window_valloss) >= (criteria + 1)):
             #    if (sorted_window_valloss[0] == window_valloss[0]):
             #        print("Early Stop at Epoch {}:".format(epoch_idx), "Best val model index", self.best_val_model_idx, "Best val model accuracy", self.best_val_model_acc)
@@ -383,7 +444,7 @@ class ExperimentBuilder(nn.Module):
 
         print("Generating test set evaluation metrics")
         self.load_model(model_save_dir=self.experiment_saved_models, model_idx=self.best_val_model_idx,
-                        # load best validation model
+                        #                         # load best validation model
                         model_save_name="train_model")
         current_epoch_losses = {"test_Gender_acc": [],"test_SER_acc": [], "test_loss": []}  # initialize a statistics dict
 
@@ -401,6 +462,7 @@ class ExperimentBuilder(nn.Module):
                     pbar_test.update(1)  # update progress bar status
                     pbar_test.set_description(
                         "loss: {:.4f}, SER_ accuracy: {:.4f},  Test_ accuracy: {:.4f},".format(loss, accuracy1, accuracy2))  # update progress bar string output
+                    torch.cuda.empty_cache()
             except KeyboardInterrupt:
                 pbar_test.close()
                 raise
@@ -415,8 +477,8 @@ class ExperimentBuilder(nn.Module):
                         # save test set metrics on disk in .csv format
                         stats_dict=test_losses, current_epoch=0, continue_from_mode=False)
 
-        print('Sorting model files')
-        self.delete_model(model_save_dir=self.experiment_saved_models, model_save_name="train_model",
-                          model_idx=self.best_val_model_idx)
+        # print('Sorting model files')
+        # self.delete_model(model_save_dir=self.experiment_saved_models, model_save_name="train_model",
+        #                   model_idx=self.best_val_model_idx)
 
         return total_losses, test_losses

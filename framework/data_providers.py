@@ -244,7 +244,7 @@ class IEMOCAP(data.Dataset):
                 if experiment_name=="mfcc":
                     feature = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40, hop_length=int(sr/100), n_fft=int(sr/40))
                     #print(feature.shape)
-                if experiment_name=="mspc":
+                if experiment_name=="mspc" or experiment_name == 'mpc_finetune':
                     feature=extract_feature(wav_path, feature='mel', cmvn=True, save_feature=None)
                     feature=feature.transpose(1, 0)
                     #print(feature.shape)
