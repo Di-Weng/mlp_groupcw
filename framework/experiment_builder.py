@@ -124,7 +124,7 @@ class ExperimentBuilder(nn.Module):
 
             # apex 混合精度
             [self.model, self.mockingjay_model], optimizer = amp.initialize([self.model, self.mockingjay_model],
-                                                                            self.optimizer, opt_level="O2")
+                                                                            self.optimizer, opt_level="O1")
 
 
         else:
