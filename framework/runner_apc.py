@@ -19,7 +19,7 @@ from apc.solver import Solver
 from utility.audio import mel_dim
 
 ######################
-# APC CONFIGURATIONS #
+# apc CONFIGURATIONS #
 ######################
 def get_apc_args():
     
@@ -37,16 +37,16 @@ def get_apc_args():
 
 
 ######################
-# APC CONFIGURATIONS #
+# apc CONFIGURATIONS #
 ######################
 class get_apc_config():
     def __init__(self, seed=1337):
-        # Prenet architecture (note that all APC models in the paper DO NOT incoporate a prenet)
+        # Prenet architecture (note that all apc models in the paper DO NOT incoporate a prenet)
         self.prenet_num_layers = 0 # Number of ReLU layers as prenet
         self.prenet_dropout = 0.0 # Dropout for prenet
 
         # RNN architecture
-        self.rnn_num_layers = 3 # Number of RNN layers in the APC model
+        self.rnn_num_layers = 3 # Number of RNN layers in the apc model
         self.rnn_hidden_size = 768 # Number of hidden units in each RNN layer, set identical to mockingjay `hidden_size`
         self.rnn_dropout = 0.1 # Dropout for each RNN output layer except the last one
         self.rnn_residual = True # Apply residual connections between RNN layers if specified
@@ -77,7 +77,7 @@ class get_apc_config():
 
 
 ##################
-# GET APC SOLVER #
+# GET apc SOLVER #
 ##################
 def get_apc_solver(seed, train=True):
     solver = Solver(get_apc_config(seed))
@@ -87,7 +87,7 @@ def get_apc_solver(seed, train=True):
 
 
 #################
-# GET APC MODEL #
+# GET apc MODEL #
 #################
 def get_apc_model(path):
     solver = Solver(get_apc_config())

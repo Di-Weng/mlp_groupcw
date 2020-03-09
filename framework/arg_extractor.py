@@ -56,6 +56,7 @@ def get_args():
                         help='layer number for mpc feature-based')
     parser.add_argument('--mpc', nargs="?", type=str2bool, default=False,
                         help='A flag indicating whether we will use GPU acceleration or not')
+
     args = parser.parse_args()
     print(args)
     return args
