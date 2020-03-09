@@ -54,6 +54,7 @@ if __name__ == '__main__':
 
 
     conv_experiment = ExperimentBuilder(network_model=custom_blstm,
+                                        beta=args.beta,
                                         layer_no=args.layer_no,
                                         SER=args.SER,
                                         experiment_name=args.experiment_name,

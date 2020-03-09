@@ -50,6 +50,8 @@ def get_args():
                         help='Weight decay to use for Adam')
     parser.add_argument('--learning_rate', nargs="?", type=float, default=1e-3,
                         help='learning rate to use for Adam')
+    parser.add_argument('--beta', nargs="?", type=float, default=1e-3,
+                        help='learning rate to use for Adam')
     parser.add_argument('--layer_no', nargs="?", type=int, default=0,
                         help='layer number for mpc feature-based')
     parser.add_argument('--mpc', nargs="?", type=str2bool, default=False,

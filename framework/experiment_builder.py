@@ -14,7 +14,7 @@ from storage_utils import save_statistics
 emotion_classes = {"ang": 0, "hap": 1,  "neu": 2, "sad": 3}
 
 class ExperimentBuilder(nn.Module):
-    def __init__(self, SER, layer_no, network_model, experiment_no, experiment_name, num_epochs, gender_MTL, train_data, val_data,
+    def __init__(self, beta, SER, layer_no, network_model, experiment_no, experiment_name, num_epochs, gender_MTL, train_data, val_data,
                  test_data, weight_decay_coefficient, use_gpu, lr, continue_from_epoch=-1):
         """
         Initializes an ExperimentBuilder object. Such an object takes care of running training and evaluation of a deep net
@@ -34,6 +34,7 @@ class ExperimentBuilder(nn.Module):
 
 
         self.layer_no=layer_no
+        self.beta=beta
         self.gender_MTL=gender_MTL
         self.SER=SER
         self.lr = lr
@@ -172,7 +173,7 @@ class ExperimentBuilder(nn.Module):
 
         if self.gender_MTL:
             #print("training gender..")
-            loss+=F.cross_entropy(input=out2, target=z)
+            loss+=self.beta*F.cross_entropy(input=out2, target=z)
 
         self.optimizer.zero_grad()  # set all weight grads from previous training iters to 0
         loss.backward()  # backpropagate to compute gradients for current iter loss
@@ -219,7 +220,7 @@ class ExperimentBuilder(nn.Module):
 
         if self.gender_MTL:
             print("training gender...")
-            loss+= F.cross_entropy(input=out2, target=z)
+            loss+= self.beta*F.cross_entropy(input=out2, target=z)
         _, predicted1 = torch.max(out1.data, 1)  # get argmax of predictions
         _, predicted2 = torch.max(out2.data, 1)  # get argmax of predictions
         accuracy1 = np.mean(list(predicted1.eq(y.data).cpu()))  # compute accuracy
