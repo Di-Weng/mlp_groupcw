@@ -348,6 +348,7 @@ class ExperimentBuilder(nn.Module):
                         current_epoch_losses["train_acc_GENDER"].append(accuracy2)
                         pbar_train.update(1)
                         pbar_train.set_description("loss: {:.4f}, accuracy_SER: {:.4f}, accuracy_Gender: {:.4f}".format(loss, accuracy1, accuracy2))
+                        torch.cuda.empty_cache()
                 except KeyboardInterrupt:
                     pbar_train.close()
                     raise
@@ -366,6 +367,7 @@ class ExperimentBuilder(nn.Module):
                         current_epoch_losses["val_Gender_acc"].append(accuracy2)  # add current iter acc to val acc lst.
                         pbar_val.update(1)  # add 1 step to the progress bar
                         pbar_val.set_description("loss: {:.4f}, accuracy_SER: {:.4f}, accuracy_Gender: {:.4f}".format(loss, accuracy1, accuracy2))
+                        torch.cuda.empty_cache()
                 except KeyboardInterrupt:
                     pbar_val.close()
                     raise
@@ -452,6 +454,7 @@ class ExperimentBuilder(nn.Module):
                     pbar_test.update(1)  # update progress bar status
                     pbar_test.set_description(
                         "loss: {:.4f}, SER_ accuracy: {:.4f},  Test_ accuracy: {:.4f},".format(loss, accuracy1, accuracy2))  # update progress bar string output
+                    torch.cuda.empty_cache()
             except KeyboardInterrupt:
                 pbar_test.close()
                 raise
