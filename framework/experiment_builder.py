@@ -10,6 +10,7 @@ import numpy as np
 import time
 from downstream.solver import get_mockingjay_optimizer
 import sys
+from apex import amp
 
 from storage_utils import save_statistics
 emotion_classes = {"ang": 0, "hap": 1,  "neu": 2, "sad": 3}
@@ -122,6 +123,10 @@ class ExperimentBuilder(nn.Module):
                                                  warmup_proportion=0.7,
                                                  training_steps= int(3872 * self.num_epochs / self.batch_size) + 1)
 
+            # apex 混合精度
+            [self.model, self.mockingjay_model], optimizer = amp.initialize([self.model, self.mockingjay_model],
+                                                                            self.optimizer, opt_level="O2")
+
 
         else:
             self.optimizer = optim.Adam(self.parameters(), amsgrad=False,
@@ -208,11 +213,15 @@ class ExperimentBuilder(nn.Module):
             #print("training gender..")
             loss+=F.cross_entropy(input=out2, target=z)
 
-        self.optimizer.zero_grad()  # set all weight grads from previous training iters to 0
-        loss.backward()  # backpropagate to compute gradients for current iter loss
+        if(self.experiment_name.startswith('mpc_finetune')):
+            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            self.optimizer.zero_grad()  # set all weight grads from previous training iters to 0
+            loss.backward()  # backpropagate to compute gradients for current iter loss
 
-        self.optimizer.step()  # update network parameters
-        # self.learning_rate_scheduler.step(epoch=self.current_epoch)
+            self.optimizer.step()  # update network parameters
+            # self.learning_rate_scheduler.step(epoch=self.current_epoch)
 
 
         _, predicted1 = torch.max(out1.data, 1)  # get argmax of predictions
