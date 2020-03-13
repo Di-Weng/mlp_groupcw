@@ -397,7 +397,7 @@ class ExperimentBuilder(nn.Module):
             total_losses["ua_train"].append(ua_train)
             for key, value in self.eval_current_epoch_correct_count.items():
                 ua_val+=value/self.eval_current_epoch_emo_count[key]/4
-            total_losses["ua_eval"].append(ua_train)
+            total_losses["ua_eval"].append(ua_val)
 
 
 
