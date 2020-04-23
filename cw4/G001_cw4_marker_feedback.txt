@@ -1,0 +1,42 @@
+G001:  s1902530 s1968246 s1407182
+
+MLP Coursework 4
+April 2020
+
+TOTAL MARK:   58/100
+
+COMMENTS:
+
+
+Abstract, Introduction, and Objectives  6
+[is the abstract clear, and does it concisely cover what is reported in the document?  Does the introduction clearly outline and motivate the paper?  Are the research questions and objectives clearly presented? - default 10%]
+Citation for dataset is needed. Since your objectives are not met according to Abstract, are there other follow-up experiments or future improvement that you want to mention? 
+Objectives and research questions are clearly stated in Introduction, but the paper outline is not mentioned.
+
+
+Task and Data 6
+[is the data set used clearly described? Is the task clear, and is the evaluation metric well-explained? Are there appropriate references for the task and data set, and for the evaluation approach? - default 10%]
+There are some grammar errors like ‘five male’. 
+The dataset and pre-processing is clearly described. Providing formulas for UA and WA can help with explanation. 
+Task formulation can be in more details in terms of two research questions.
+
+
+Methodology  20
+[does it explain clearly the methodology  and technical approaches adopted, with reference to the literature? - default 30%]
+The overall design is clear. In 3.3 BLSTM, you can have one or two sentence s describing LSTM, rather than saying ‘we only describe it briefly here’. And you should also classify the relationship between LSTM and BLSTM briefly here. You need to have another subsection describing technical approaches such as machine learning framework or other libraries with citations.
+
+
+Experiments  18
+[is each experiment well explained including the motivation, technical description (reproducibility), the results (clearly presented), and the interpretation and discussion (relating to the motivation)? - default 35%]
+For subsection titles, I think it is not intuitional if you named it alphabetically. It should have a suitable name reflecting what this experiment is about.
+In 4.2, ‘a too big learning rate would cause NaN value in the loss’ is not a proper description of the reason. Causing NaN value is just the consequence of displaying a large number, not the root reason. The root reason is that a large learning rate may result in large updates of weights and drive away from convergence. Additionally, ‘a too small learning rate would cause slow learning’ also does not convey the key information, which should be ‘too much training time to reach the convergence’. You need to think about how to explain the reason better.
+The rest of the part is mainly about showing the results with not much discussion. 
+
+
+Related Work and Conclusions 9
+[is the work reported in the paper put in context with references to the literature where appropriate?)
+how does the work done match to the objectives? are the conclusions clearly expressed? what have we learned? - default 15%]
+I don’t think future work has much novelty. The conclusion summarizes the result, however the objectives are not met. The analysis is not quite thoughtful, since reason I understand from the conclusion is ‘SER is complicated’ and ‘insufficient time given’.
+
+
+

@@ -1,0 +1,87 @@
+G001:  s1902530 s1968246 s1407182
+
+
+MLP Coursework 4
+April 2020
+
+TOTAL MARK:   66/100
+
+COMMENTS:
+
+
+6/10 Abstract, Introduction, and Objectives
+[is the abstract clear, and does it concisely cover what is reported in the document?  Does the introduction clearly outline and motivate the paper?  Are the research questions and objectives clearly presented? - default 10%]
+
+Abstract quickly narrows down the scope to the task at hand (+). "feature-based manner"? 
+
+(A question I will be looking at is to what extent your comparisons with and without the embedding are meaningful in terms of the hypotheses you spoecify). 
+
+The conclusions in your Abstract are too strong given the narrow scope of the investigation. Intead of "show that" you should go with something like "found little/no evidence of".
+
+Very Good Introduction opening. 
+
+"The core idea behind these unsupervised
+representation learning is to predict future or masked out features to train a network," this could have been made clearer.
+
+I would expect a conceptual description of SER arlier on, along with a brief outline of the state of the art, and a clear description of whether and to what extent some form of transfer learning has been demonstrated for the task.
+
+
+The Multi-task learning question is narrower, of course, but also more clearly defined. The 2019 paper has a questionable setup (raw wave input); would have liked some more discussion there.
+
+Overall, a good first setup.
+
+
+
+8/10 Task and Data
+[is the data set used clearly described? Is the task clear, and is the evaluation metric well-explained? Are there appropriate references for the task and data set, and for the evaluation approach? - default 10%]
+
+Well described preprocessing. Mostly well justified (+) but I would have liked a discussion on categorical vs soft labels for the scenario. 
+
+Generally, excellent data and task discussion. Some way of sharing a sample could have helped readability.
+
+
+
+22/30 Methodology 
+[does it explain clearly the methodology  and technical approaches adopted, with reference to the literature? - default 30%]
+
+"librosa"?
+
+"which improves intrigity of each individual audio pieces (?)" citation missing
+
+"MFCC-based input will probably not be benefited from this" - the input isn't benefited?
+
+Though the overuse of acronyms makes the text hard to read, there is some good analysis and intuition behind design decisions here.
+
+Very good use of figures.
+
+I would expect a clearer description of how MPC works, along with a more detailed comparison of the approaches.
+
+
+
+21/30 Experiments
+[is each experiment well explained including the motivation, technical description (reproducibility), the results (clearly presented), and the interpretation and discussion (relating to the motivation)? - default 35%]
+
+There is a good trajectory through experiments. It is clear where each research question is tackled, and useful comparisons are made. Attempts are made at explaining the results, with some useful intuition.
+
+Clearly described and reasonable hyperparameter options tested. There is very little justification for picking these however, and little discussion around the effects these might have. Some speculation, e.g. in paragraph 2 of section 4.3 is ill-supported and would have warranted more discussion and/or citations.
+
+"using too large learning rate would cause NaN value" - There is something else happening in between these two events.
+
+"Combining all the layers from the MPC model theoratically should improve the performance on SER, because weare adding new features based on the hidden states from the last layer we are currently using now," - this is far from obvious. The writing is also somewhat unclear. Also, you say "theoretically"; so based on what theory is this?
+
+Overall, a good section that doesn't go beyond the basics.
+
+
+
+9/15 Related Work and Conclusions
+[is the work reported in the paper put in context with references to the literature where appropriate?)
+how does the work done match to the objectives? are the conclusions clearly expressed? what have we learned? - default 15%]
+
+There has been a reasonable attempt at meeting the objectives. Testing could have gone further so the conclusions are far from definite. Unfortunately, this is poresented as future work which is not a particularly useful angle for future research.
+
+The paper does a very good job in using previous work in contextualising what it does.
+
+
+
+
+

@@ -1,0 +1,4 @@
+务必检查!! MD5 的 dataset.zip 哈希:
+c15d46df61cf2996b9f30368ad595bde
+
+dataset.zip解压后的 dataset文件夹直接放到github项目的根目录下, gitignore file已经标记dataset文件夹不追踪版本
